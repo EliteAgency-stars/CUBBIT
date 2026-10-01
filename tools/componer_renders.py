@@ -5,7 +5,7 @@ Higgsfield genera cada escena con marcadores de color:
   - magenta (#FF00FF) donde va el logo          -> se reemplaza por el logo Cubitt platino oficial
 Así el logo y las artes nunca los dibuja la IA: se pegan los archivos originales con perspectiva.
 
-Uso: python3 componer_renders.py entrada.png salida.jpg arte1,arte2,... [dir_artes]
+Uso: python3 componer_renders.py entrada.png salida.jpg arte1,arte2,... [dir_artes] [cierre]
 Imprime un JSON con las regiones encontradas y la verificación SIFT del logo.
 """
 import json
@@ -16,19 +16,22 @@ import cv2
 import numpy as np
 
 ARTES_DIR = sys.argv[4] if len(sys.argv) > 4 else 'a'
+# separación entre cajas de luz vecinas (fracción del ancho usada para cerrar huecos de objetos delante)
+CIERRE = float(sys.argv[5]) if len(sys.argv) > 5 else 0.02
 
 
 def mascaras(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, (42, 110, 90), (78, 255, 255))
-    magenta = cv2.inRange(hsv, (138, 90, 90), (168, 255, 255))
+    # magenta puro (#FF00FF ≈ H 150): rango estrecho para no confundir productos rosados o fucsia
+    magenta = cv2.inRange(hsv, (141, 130, 110), (159, 255, 255))
     return verde, magenta
 
 
 def regiones(mask, area_min):
     """Agrupa la máscara en regiones (cerrando huecos de objetos delante) y devuelve (cuadrilátero, máscara_real)."""
     h, w = mask.shape
-    k = max(5, int(w * 0.02)) | 1
+    k = max(3, int(w * CIERRE)) | 1
     cerrada = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (k, k)))
     n, lab, stats, _ = cv2.connectedComponentsWithStats(cerrada)
     salida = []
@@ -36,13 +39,36 @@ def regiones(mask, area_min):
         if stats[i, cv2.CC_STAT_AREA] < area_min:
             continue
         zona = (lab == i).astype(np.uint8) * 255
-        pts = cv2.findNonZero(zona).reshape(-1, 2).astype(np.float64)
-        s, d = pts.sum(1), pts[:, 0] - pts[:, 1]
-        quad = np.array([pts[s.argmin()], pts[d.argmax()], pts[s.argmax()], pts[d.argmin()]], np.float32)  # TL TR BR BL
+        quad = cuadrilatero(zona)
         real = cv2.bitwise_and(mask, zona)
         salida.append((quad, real, int(stats[i, cv2.CC_STAT_AREA])))
     salida.sort(key=lambda r: -r[2])
     return salida
+
+
+def cuadrilatero(zona):
+    """Cuatro esquinas (TL, TR, BR, BL) del contorno: polígono aproximado; si no da 4 lados, puntos extremos."""
+    cont = max(cv2.findContours(zona, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0], key=cv2.contourArea)
+    hull = cv2.convexHull(cont)
+    per = cv2.arcLength(hull, True)
+    pts = None
+    for f in np.linspace(0.01, 0.12, 23):
+        ap = cv2.approxPolyDP(hull, f * per, True)
+        if len(ap) == 4:
+            pts = ap.reshape(4, 2).astype(np.float32)
+            break
+    if pts is None:
+        p = hull.reshape(-1, 2).astype(np.float64)
+        s, d = p.sum(1), p[:, 0] - p[:, 1]
+        return np.array([p[s.argmin()], p[d.argmax()], p[s.argmax()], p[d.argmin()]], np.float32)
+    c = pts.mean(0)
+    pts = pts[np.argsort(np.arctan2(pts[:, 1] - c[1], pts[:, 0] - c[0]))]  # orden horario en imagen
+    i = int(np.argmin(pts.sum(1)))
+    pts = np.roll(pts, -i, 0)
+    # el lado TL→TR debe ser el más horizontal; si no, rotar un paso
+    if abs(pts[1, 1] - pts[0, 1]) > abs(pts[1, 0] - pts[0, 0]):
+        pts = np.roll(pts, 1, 0)
+    return pts
 
 
 def medidas(quad):
@@ -140,24 +166,30 @@ def main():
 
     artes = {n: cv2.imread(f'{ARTES_DIR}/{n}.jpg') for n in set(lista)}
     usos = {n: 0 for n in lista}
+    compuesto = np.zeros(verde.shape, np.uint8)
     for quad, real, area in regiones(verde, area_min):
         ancho, alto = medidas(quad)
         prop = ancho / max(alto, 1)
         # arte con la proporción más parecida, penalizando repeticiones
         nombre = min(lista, key=lambda n: abs(math.log(prop / (artes[n].shape[1] / artes[n].shape[0]))) + 0.6 * usos[n])
         usos[nombre] += 1
+        compuesto = compuesto | cv2.dilate(real, np.ones((9, 9), np.uint8))
         img = pegar(img, ajustar(artes[nombre], ancho, alto), quad, real)
         reporte['cajas'].append({'arte': nombre, 'area': area, 'proporcion': round(float(prop), 2), 'quad': quad.round().tolist()})
 
     for quad, real, area in regiones(magenta, area_min * 0.4):
         ancho, alto = medidas(quad)
+        if ancho / max(alto, 1) < 1.8:  # las placas del logo son horizontales; lo demás no se toca
+            reporte.setdefault('ignorados', []).append(area)
+            continue
+        compuesto = compuesto | cv2.dilate(real, np.ones((9, 9), np.uint8))
         img = pegar(img, placa_logo(logo, ancho, alto, color_anillo(img, real)), quad, real)
         reporte['logos'].append({'area': area, 'proporcion': round(float(ancho / max(alto, 1)), 2), 'quad': quad.round().tolist()})
 
     # limpieza de bordes de croma que hayan quedado
     v2, m2 = mascaras(img)
-    resto = cv2.dilate(v2 | m2, np.ones((3, 3), np.uint8))
-    reporte['pixeles_croma_restantes'] = int((v2 | m2).sum() / 255)
+    resto = cv2.dilate(v2 | m2, np.ones((3, 3), np.uint8)) & compuesto  # solo bordes de lo compuesto
+    reporte['pixeles_croma_restantes'] = int(resto.sum() / 255)
     if resto.any():
         img = cv2.inpaint(img, resto, 4, cv2.INPAINT_TELEA)
     reporte['sift_logo_inliers'] = verificar_logo(img, logo) if reporte['logos'] else None
