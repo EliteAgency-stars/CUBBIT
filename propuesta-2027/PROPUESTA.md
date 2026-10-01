@@ -58,14 +58,17 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - [x] Costos revisados según material.
 - [x] Planos cenitales de distribución de productos (mesa, mueble, display, kids).
 - [x] Mueble para niños con criterios de accesibilidad.
-- [x] Logo verificado en cada render (dos t, retícula completa); se descartó el despiece generado por IA porque omitía la retícula.
+- [x] Logo oficial en cada render: Higgsfield deja una placa magenta y `tools/componer_renders.py` pega el archivo original del logo platino (la IA ya no lo dibuja).
+- [x] Artes reales en las cajas de luz: Higgsfield deja la tela en verde croma y se pega el arte original con perspectiva.
+- [x] Modelo 3D Higgsfield del mueble Cubitt Jr & Teens.
 - [x] Firma únicamente de **FARUK AGENCIA**, con su logo y el aviso de marca registrada.
 
 ## Recursos
 
 - Artes y fotos de producto originales: [`artes-cubitt/originales/`](artes-cubitt/originales/) (ver [`artes-cubitt/INVENTARIO.md`](artes-cubitt/INVENTARIO.md)); versiones web en `artes-cubitt/web/` y recortes en `artes-cubitt/productos/` (generados con `tools/preparar_artes.py`).
-- Renders Higgsfield (GPT Image 2.5 con logo, artes, productos y texturas como referencia): [`renders/`](renders/) (`tools/descargar_renders.py`).
-- Modelo 3D Higgsfield (Tripo H3.1) optimizado a 4,4 MB: [`modelos/mesa-experiencia.glb`](modelos/mesa-experiencia.glb) (`tools/optimizar_glb.py` + gltf-transform).
+- Renders v3 Higgsfield (GPT Image 2.5 con las hojas de producto de [`referencias/`](referencias/) + composición con `tools/componer_renders.py`): enlaces en [`js/media.js`](js/media.js). Los renders v2 que quedan en [`renders/`](renders/) son el lado vendedor y el detalle de materiales.
+- Modelo 3D Higgsfield de la mesa de experiencia (Tripo H3.1), generado desde un render limpio compuesto con la valla «Nueva Era» y el logo oficial: enlace en [`js/media.js`](js/media.js). Se puede optimizar con `tools/optimizar_glb.py`.
+- Modelo 3D Higgsfield del mueble Cubitt Jr & Teens (Tripo H3.1, 10,8 MB): enlace en [`js/media.js`](js/media.js).
 - Texturas Capri y Duna (Pelíkano): [`assets/materiales/`](assets/materiales/). Firma FARUK AGENCIA: [`assets/firma/`](assets/firma/) (`tools/preparar_firma.py`).
 - Los archivos SketchUp (`.skp`) se conservan como referencia; para usarlos en la web hay que exportarlos desde SketchUp a `.glb`, `.dae` u `.obj`.
 
