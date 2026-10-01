@@ -67,7 +67,7 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 
 - Artes y fotos de producto originales: [`artes-cubitt/originales/`](artes-cubitt/originales/) (ver [`artes-cubitt/INVENTARIO.md`](artes-cubitt/INVENTARIO.md)); versiones web en `artes-cubitt/web/` y recortes en `artes-cubitt/productos/` (generados con `tools/preparar_artes.py`).
 - Renders v3 Higgsfield (GPT Image 2.5 con las hojas de producto de [`referencias/`](referencias/) + composición con `tools/componer_renders.py`): enlaces en [`js/media.js`](js/media.js). Los renders v2 que quedan en [`renders/`](renders/) son el lado vendedor y el detalle de materiales.
-- Modelo 3D Higgsfield (Tripo H3.1) optimizado a 4,4 MB: [`modelos/mesa-experiencia.glb`](modelos/mesa-experiencia.glb) (`tools/optimizar_glb.py` + gltf-transform).
+- Modelo 3D Higgsfield de la mesa de experiencia (Tripo H3.1), generado desde un render limpio compuesto con la valla «Nueva Era» y el logo oficial: enlace en [`js/media.js`](js/media.js). Se puede optimizar con `tools/optimizar_glb.py`.
 - Modelo 3D Higgsfield del mueble Cubitt Jr & Teens (Tripo H3.1, 10,8 MB): enlace en [`js/media.js`](js/media.js).
 - Texturas Capri y Duna (Pelíkano): [`assets/materiales/`](assets/materiales/). Firma FARUK AGENCIA: [`assets/firma/`](assets/firma/) (`tools/preparar_firma.py`).
 - Los archivos SketchUp (`.skp`) se conservan como referencia; para usarlos en la web hay que exportarlos desde SketchUp a `.glb`, `.dae` u `.obj`.

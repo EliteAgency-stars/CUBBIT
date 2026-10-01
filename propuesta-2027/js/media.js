@@ -26,8 +26,9 @@ export const RENDERS = {
   despiece: v3('8f5fde88-8aa5-4864-9714-99bc96f77767', 'Despiece de la mesa de experiencia con sus ocho capas'),
 };
 
-// Modelos 3D generados por Higgsfield (Tripo H3.1, imagen → 3D).
+// Modelos 3D generados por Higgsfield (Tripo H3.1, imagen → 3D) a partir de renders limpios ya compuestos
+// con la valla real y el logo oficial.
 export const MODELOS_IA = {
-  mesa: 'propuesta-2027/modelos/mesa-experiencia.glb',
+  mesa: 'https://d8j0ntlcm91z4.cloudfront.net/user_3H8VPOIlKTSsf171GizUHRYwT0M/hf_20261001_075057_a90cad8d-9005-4f71-afbf-a248eea653bd.glb',
   kids: 'https://d8j0ntlcm91z4.cloudfront.net/user_3H8VPOIlKTSsf171GizUHRYwT0M/hf_20261001_073624_5615a9f7-658f-469c-987c-a8bb33867665.glb',
 };
