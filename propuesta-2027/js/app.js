@@ -5,8 +5,9 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { crearEscena } from './escena3d.js';
 import { RENDERS, MODELOS_IA } from './media.js';
+import { planoSVG, leyenda } from './planos.js';
 
-// ---------- Renders: cada <img data-render="clave"> toma su URL de media.js ----------
+// ---------- Renders: cada <img data-render="clave"> toma su archivo de media.js ----------
 document.querySelectorAll('[data-render]').forEach((img) => {
   const r = RENDERS[img.dataset.render];
   if (!r) return;
@@ -14,25 +15,40 @@ document.querySelectorAll('[data-render]').forEach((img) => {
   img.alt = r.alt;
   img.loading = img.dataset.calidad === 'alta' ? 'eager' : 'lazy';
   img.decoding = 'async';
-  img.addEventListener('error', () => { if (img.src !== r.full) img.src = r.full; }, { once: true });
-  img.closest('figure')?.addEventListener('click', () => abrirLightbox(r));
+  img.closest('figure')?.addEventListener('click', () => abrirLightbox(r.full, r.alt));
 });
 document.querySelectorAll('[data-render-bg]').forEach((el) => {
   const r = RENDERS[el.dataset.renderBg];
   if (r) el.style.backgroundImage = `url("${r.full}")`;
+});
+document.querySelectorAll('figure[data-ampliar] img').forEach((img) => {
+  img.closest('figure').addEventListener('click', () => abrirLightbox(img.dataset.full || img.src, img.alt));
 });
 
 // ---------- Lightbox ----------
 const lb = document.getElementById('lightbox');
 const lbImg = lb.querySelector('img');
 const lbCap = lb.querySelector('figcaption');
-function abrirLightbox(r) {
-  lbImg.src = r.full;
-  lbImg.alt = r.alt;
-  lbCap.textContent = r.alt;
+function abrirLightbox(src, alt) {
+  lbImg.src = src;
+  lbImg.alt = alt;
+  lbCap.textContent = alt;
   lb.showModal();
 }
 lb.addEventListener('click', () => lb.close());
+
+// ---------- Planos cenitales ----------
+const lamina = document.getElementById('plano-lamina');
+const ley = document.getElementById('plano-leyenda');
+function mostrarPlano(clave) {
+  lamina.innerHTML = planoSVG(clave);
+  ley.innerHTML = leyenda(clave);
+  document.querySelectorAll('[data-plano]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.plano === clave)));
+}
+document.querySelectorAll('[data-plano]').forEach((b) => b.addEventListener('click', () => mostrarPlano(b.dataset.plano)));
+mostrarPlano('mesa');
+const planoMesa = document.getElementById('plano-mesa');
+if (planoMesa) planoMesa.innerHTML = planoSVG('mesa');
 
 // ---------- Escena 3D sincronizada con el recorrido ----------
 const lienzo = document.getElementById('escena');
@@ -53,13 +69,11 @@ let actual = null;
 function activar(sec) {
   if (!sec || sec === actual) return;
   actual = sec;
-  const vista = sec.dataset.vista;
-  escena?.irA(vista);
+  escena?.irA(sec.dataset.vista);
   etiqueta.textContent = sec.dataset.etiqueta || '';
-  document.querySelectorAll('.indice a').forEach((a) => a.classList.toggle('activo', a.getAttribute('href') === `#${sec.closest('section')?.id}`));
-  if (escena) {
-    btnDespiece.setAttribute('aria-pressed', String(escena.getDespiece()));
-  }
+  const id = sec.closest('section[id]')?.id;
+  document.querySelectorAll('.indice a').forEach((a) => a.classList.toggle('activo', a.getAttribute('href') === `#${id}`));
+  if (escena) btnDespiece.setAttribute('aria-pressed', String(escena.getDespiece()));
 }
 const obs = new IntersectionObserver((entradas) => {
   const vis = entradas.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
@@ -69,7 +83,7 @@ secciones.forEach((s) => obs.observe(s));
 
 document.querySelectorAll('[data-ir]').forEach((b) => b.addEventListener('click', () => {
   escena?.irA(b.dataset.ir);
-  etiqueta.textContent = b.textContent.trim();
+  etiqueta.textContent = b.title || b.textContent.trim();
 }));
 btnLuz.addEventListener('click', () => {
   if (!escena) return;
@@ -85,7 +99,7 @@ btnDespiece.addEventListener('click', () => {
   btnDespiece.setAttribute('aria-pressed', String(on));
 });
 
-// ---------- Visor de modelos 3D generados con Higgsfield ----------
+// ---------- Visor del modelo 3D generado con Higgsfield ----------
 const visor = document.getElementById('visor-ia');
 const estadoVisor = document.getElementById('visor-ia-estado');
 let visorIA = null;
@@ -124,9 +138,8 @@ function crearVisorIA() {
         if (modelo) scene.remove(modelo);
         modelo = gltf.scene;
         const caja = new THREE.Box3().setFromObject(modelo);
-        const centro = caja.getCenter(new THREE.Vector3());
+        modelo.position.sub(caja.getCenter(new THREE.Vector3()));
         const tamano = caja.getSize(new THREE.Vector3()).length();
-        modelo.position.sub(centro);
         scene.add(modelo);
         cam.position.set(tamano * 0.7, tamano * 0.45, tamano * 0.9);
         ctr.target.set(0, 0, 0);
@@ -148,4 +161,8 @@ botonesIA.forEach((b) => {
     visorIA.cargar(url);
   });
 });
-estadoVisor.textContent = 'Elige un modelo para cargarlo (≈60 MB, tarda unos segundos).';
+new IntersectionObserver(([e], o) => {
+  if (!e.isIntersecting) return;
+  o.disconnect();
+  [...botonesIA].find((b) => !b.disabled)?.click();
+}, { rootMargin: '200px' }).observe(visor);

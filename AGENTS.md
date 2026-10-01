@@ -7,7 +7,8 @@ Repositorio de la propuesta de adecuación de la **Tienda CUBITT** (C.C. Centro 
 - `README.md` — fuente principal: datos del local, presupuesto, alcance por capítulo, materiales, cronograma, estado de obra y documentos fuente.
 - `data/presupuesto.csv` — los 63 ítems del presupuesto (capítulo, ítem, descripción, unidad, cantidad, valor unitario y total en COP). Úsalo para cualquier cálculo.
 - `assets/*.png` — esquemas generados desde la propuesta (planta, costos, cronograma, mueble, paleta, estado).
-- `index.html` + `propuesta-2027/` — propuesta de mobiliario 2027 «Línea Platino»: sitio estático con escena 3D (three.js incluido en `propuesta-2027/vendor/`), ficha en `propuesta-2027/PROPUESTA.md`. Las URLs de renders y GLB de Higgsfield están en `propuesta-2027/js/media.js`.
+- `index.html` + `propuesta-2027/` — propuesta de mobiliario 2027 «Línea Platino»: sitio estático con escena 3D (three.js incluido en `propuesta-2027/vendor/`), ficha en `propuesta-2027/PROPUESTA.md`. Renders en `propuesta-2027/renders/`, modelo GLB en `propuesta-2027/modelos/`, planos cenitales en `propuesta-2027/js/planos.js`, artes y fotos reales de Cubitt en `propuesta-2027/artes-cubitt/` (originales + `web/` + `productos/`). Scripts de regeneración en `tools/` (requieren Pillow, numpy, PyMuPDF, pygltflib).
+- La propuesta se firma solo como **FARUK AGENCIA** (logo en `propuesta-2027/assets/firma/`). Materiales: melamina Capri (cuerpos) y Duna (madera) de Madecentro; luz 3000K muebles/logo y 5000K cajas de luz; zócalos inox.
 - `tools/generar_imagenes.py` — regenera los PNG: `python3 tools/generar_imagenes.py` (requiere matplotlib).
 
 ## Cifras clave
