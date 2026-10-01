@@ -1,1 +1,333 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cubitt 2027 · Línea Platino</title>
+  <meta name="description" content="Propuesta de mobiliario Cubitt 2027: mesa de experiencia, mueble de exhibición y display de sobremesa con lámina translúcida retroiluminada y logo Cubitt en platino.">
+  <link rel="icon" href="propuesta-2027/assets/logo/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="propuesta-2027/css/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./propuesta-2027/vendor/three/build/three.module.min.js",
+        "three/addons/": "./propuesta-2027/vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
 
+<header class="barra">
+  <a class="barra-logo" href="#inicio" aria-label="Cubitt 2027 — inicio">
+    <img src="propuesta-2027/assets/logo/logo-cubitt-negro.png" alt="Cubitt" width="120" height="27">
+    <span>2027</span>
+  </a>
+  <nav class="indice" aria-label="Secciones">
+    <a href="#concepto">Sistema</a>
+    <a href="#mesa">Mesa</a>
+    <a href="#mueble">Mueble</a>
+    <a href="#sobremesa">Sobremesa</a>
+    <a href="#logo">Logo</a>
+    <a href="#materiales">Materiales</a>
+    <a href="#costos">Costos</a>
+    <a href="#modelo-ia">3D</a>
+  </nav>
+</header>
+
+<!-- ============ PORTADA ============ -->
+<section id="inicio" class="portada" data-render-bg="familia">
+  <div class="portada-velo"></div>
+  <div class="portada-texto">
+    <p class="eyebrow">Mobiliario 2027 · Propuesta de diseño</p>
+    <img class="portada-logo" src="propuesta-2027/assets/logo/logo-cubitt-platino.png" alt="Cubitt" width="560" height="128">
+    <h1>Línea Platino</h1>
+    <p class="lead">Un volumen sereno, una lámina de luz y el logo Cubitt en platino. Tres piezas, cinco componentes y un solo ADN, pensado para producirse sin sobrecostos.</p>
+    <div class="portada-acciones">
+      <a class="boton" href="#concepto">Ver la propuesta en 3D</a>
+      <a class="boton boton-claro" href="#costos">Costos de referencia</a>
+    </div>
+  </div>
+  <ul class="portada-datos">
+    <li><strong>3</strong> tipologías</li>
+    <li><strong>5</strong> componentes repetidos</li>
+    <li><strong>4000K</strong> luz sin puntos</li>
+    <li><strong>0</strong> acabados negros</li>
+  </ul>
+</section>
+
+<!-- ============ RECORRIDO (texto + escena 3D fija) ============ -->
+<div class="recorrido">
+  <div class="recorrido-lienzo">
+    <div id="escena" class="escena" aria-label="Modelo 3D interactivo de la familia de mobiliario Cubitt 2027">
+      <p class="escena-cargando">Cargando escena 3D…</p>
+      <p class="escena-sin-webgl">Tu navegador no muestra 3D; las imágenes de cada sección muestran la propuesta.</p>
+    </div>
+    <div class="escena-ui">
+      <span id="escena-etiqueta" class="escena-etiqueta">Familia completa</span>
+      <div class="escena-botones">
+        <button type="button" data-ir="familia">Familia</button>
+        <button type="button" data-ir="mesa">Mesa</button>
+        <button type="button" data-ir="modular">Mueble</button>
+        <button type="button" data-ir="sobremesa">Sobremesa</button>
+        <button type="button" id="btn-luz" aria-pressed="true">Luz encendida</button>
+        <button type="button" id="btn-despiece" aria-pressed="false">Despiece</button>
+      </div>
+      <p class="escena-ayuda">Arrastra para girar · rueda o pellizco para acercar. Medidas reales del brief.</p>
+    </div>
+  </div>
+
+  <div class="recorrido-texto">
+
+    <!-- SISTEMA -->
+    <section id="concepto" class="paso" data-vista="familia" data-etiqueta="Familia completa">
+      <p class="eyebrow">01 · El sistema</p>
+      <h2>Más impacto con menos elementos</h2>
+      <p>La familia no son tres muebles distintos: es un mismo volumen que cambia de escala. Cada pieza se arma con los mismos cinco componentes, así el taller fabrica en serie, la tienda se reconoce desde lejos y el costo se mantiene bajo.</p>
+      <ol class="componentes">
+        <li><span class="muestra m-arena"></span><div><strong>Cuerpo arena</strong> MDF 18 mm con melamina mate color arena. Solo las aristas verticales visibles llevan radio R30.</div></li>
+        <li><span class="muestra m-roble"></span><div><strong>Cubierta roble flotante</strong> Melamina roble claro de 30 mm sobre una línea de sombra de 15 mm, así parece un plano suspendido.</div></li>
+        <li><span class="muestra m-opal"></span><div><strong>Lámina de luz</strong> Acrílico opal de 3 mm retroiluminado con LED COB 4000K. Deja pasar la luz sin mostrar puntos.</div></li>
+        <li><span class="muestra m-platino"></span><div><strong>Logo Cubitt platino</strong> El logo oficial, cortado en acrílico con cara platino y montado sobre la lámina: la luz lo recorta como una silueta.</div></li>
+        <li><span class="muestra m-alu"></span><div><strong>Aluminio satinado</strong> Perfil comercial que enmarca la lámina, zócalo rehundido de 6 cm y riel de precio.</div></li>
+      </ol>
+      <figure class="render"><img data-render="familia" data-calidad="alta"><figcaption>Familia completa en la tienda Cubitt · render Higgsfield</figcaption></figure>
+    </section>
+
+    <!-- MESA -->
+    <section id="mesa" class="paso" data-vista="mesa" data-etiqueta="Mesa de experiencia · 150 × 90 × 70 cm">
+      <p class="eyebrow">02 · Tipología 01</p>
+      <h2>Mesa de experiencia</h2>
+      <p class="medidas">150 × 90 × 70 cm <span>ancho × alto × fondo</span></p>
+      <p>La pieza central del Touch &amp; Try. Su frente es una sola lámina de luz con el logo platino, así la mesa tiene presencia aunque no tenga producto. Sobre la cubierta, un elevador opal iluminado de 10 cm crea el segundo nivel para el producto principal.</p>
+      <ul class="cumple">
+        <li>Área amplia de prueba: 1,52 × 0,72 m de cubierta, con 6 relojes en dos niveles.</li>
+        <li>Relojes, audio o categorías por campaña: el elevador y las bases son sueltos.</li>
+        <li>Branding integrado: el logo hace parte de la lámina, no es un adhesivo encima.</li>
+        <li>Cables ocultos: pasacables de aluminio que bajan a una bandeja interna.</li>
+        <li>Almacenamiento y reposición desde el lado del vendedor.</li>
+        <li>Pantalla opcional: el elevador puede cambiarse por un monitor de 24″ empotrado.</li>
+      </ul>
+      <figure class="render"><img data-render="mesa"><figcaption>Mesa de experiencia · frente de lámina opal y logo platino</figcaption></figure>
+      <figure class="render"><img data-render="touch"><figcaption>Ve → se acerca → toca → prueba → compara → compra</figcaption></figure>
+    </section>
+
+    <section class="paso paso-sub" data-vista="luz" data-etiqueta="La lámina translúcida · 4000K">
+      <p class="eyebrow">Mesa · La luz</p>
+      <h3>Una lámina translúcida que de verdad trabaja</h3>
+      <p>El frente es una caja de luz de 8 cm de fondo: cinta LED COB 4000K sobre fondo blanco y, delante, acrílico opal de 3 mm (transmisión de luz de 50–60 %). Con esa distancia la luz sale pareja y no se ven los LED. La lámina va en un perfil de aluminio en U y se desmonta con clips para mantenimiento o para poner un vinilo translúcido de campaña.</p>
+      <p class="nota">Prueba el botón <strong>Luz encendida / apagada</strong> en el modelo 3D.</p>
+    </section>
+
+    <section class="paso paso-sub" data-vista="vendedor" data-etiqueta="Lado vendedor · puertas y cajón">
+      <p class="eyebrow">Mesa · Lado vendedor</p>
+      <h3>Reposición sin desarmar la exhibición</h3>
+      <p>Dos puertas push y un cajón con juntas de 3 mm, sin manijas. Adentro hay entrepaño, bandeja de cables con regleta y el transformador de 24 V ventilado, accesibles solo desde atrás. El cuerpo se fabrica en dos módulos que pasan por una puerta de 0,80 m.</p>
+      <figure class="render"><img data-render="vendedor"><figcaption>Lado vendedor: almacenamiento y gestión de cables</figcaption></figure>
+    </section>
+
+    <!-- MUEBLE -->
+    <section id="mueble" class="paso" data-vista="mueble" data-etiqueta="Mueble de exhibición · 120 × 140 × 40 cm">
+      <p class="eyebrow">03 · Tipología 02</p>
+      <h2>Mueble de exhibición</h2>
+      <p class="medidas">120 × 140 × 40 cm <span>ancho × alto × fondo</span></p>
+      <p>Abajo un gabinete arena de 85 cm con puertas push; arriba, un back panel de lámina opal de 55 cm que es la caja de luz del mueble. No hay copete añadido: la luz y el logo son la arquitectura.</p>
+      <ol class="jerarquia">
+        <li><strong>Producto héroe</strong> repisa acrílica regulable sobre rieles de aluminio</li>
+        <li><strong>Familia de producto</strong> mesón de roble a 88 cm</li>
+        <li><strong>Accesorios</strong> laterales del mesón y gabinete</li>
+        <li><strong>CTA / precio</strong> riel de aluminio en el canto del mesón</li>
+      </ol>
+      <p>Laterales terminados en arena, cableado por el interior y una sola toma por módulo. Sirve para relojes, audífonos, termos, accesorios y campañas.</p>
+      <figure class="render"><img data-render="mueble"><figcaption>Mueble de exhibición · back panel opal iluminado</figcaption></figure>
+    </section>
+
+    <section class="paso paso-sub" data-vista="modular" data-etiqueta="Composición modular">
+      <p class="eyebrow">Mueble · Modular</p>
+      <h3>Solo o en composición</h3>
+      <p>Los módulos se unen lado a lado y las láminas forman una franja continua de luz. El logo va en un solo módulo; el resto lleva gráfica de campaña o queda en luz pura. Así no se satura el branding.</p>
+      <figure class="render"><img data-render="modular"><figcaption>Tres módulos formando una pared de luz</figcaption></figure>
+    </section>
+
+    <!-- SOBREMESA -->
+    <section id="sobremesa" class="paso" data-vista="sobremesa" data-etiqueta="Display de sobremesa · 50 × 30 × 25 cm">
+      <p class="eyebrow">04 · Tipología 03</p>
+      <h2>Display de sobremesa</h2>
+      <p class="medidas">50 × 30 × 25 cm <span>ancho × alto × fondo</span></p>
+      <p>La misma mesa en pequeño, no una versión barata: base arena, cubierta de roble, lámina opal iluminada por el canto y el logo platino. Tres checkpoints de seguridad salen de la cubierta y un riel de aluminio lleva precio y CTA.</p>
+      <ul class="cumple">
+        <li>Mucha visibilidad en 0,125 m² de mostrador.</li>
+        <li>Touch &amp; Try con checkpoints integrados, sin bases sueltas.</li>
+        <li>Un solo cable de 12 V; viaja armado en caja de cartón doble.</li>
+      </ul>
+      <figure class="render"><img data-render="sobremesa"><figcaption>Display de sobremesa para counters de alta rotación</figcaption></figure>
+    </section>
+
+    <!-- LOGO -->
+    <section id="logo" class="paso" data-vista="logo" data-etiqueta="Logo Cubitt platino sobre lámina opal">
+      <p class="eyebrow">05 · Branding</p>
+      <h2>El logo Cubitt en platino</h2>
+      <p>Usamos el logo oficial sin cambios: la palabra Cubitt y la retícula de puntos con sus conectores. Solo cambia el acabado, a un platino de plata cálida que combina con el aluminio y elimina el negro del mobiliario.</p>
+      <div class="logo-muestras">
+        <div class="logo-muestra lm-opal"><img src="propuesta-2027/assets/logo/logo-cubitt-platino.png" alt="Logo Cubitt platino sobre lámina iluminada"></div>
+        <div class="logo-muestra lm-arena"><img src="propuesta-2027/assets/logo/logo-cubitt-platino.png" alt="Logo Cubitt platino sobre arena"></div>
+      </div>
+      <table class="tabla">
+        <tbody>
+          <tr><th>Fabricación</th><td>Acrílico de 6 mm cortado con láser a partir del vector oficial</td></tr>
+          <tr><th>Cara</th><td>Vinilo de aluminio cepillado (tipo 3M 1080 Brushed Aluminum) o pintura metalizada platino</td></tr>
+          <tr><th>Montaje</th><td>Adherido a la lámina opal; la luz trasera lo recorta con un halo suave</td></tr>
+          <tr><th>Color de referencia</th><td>Pantone 877 C · digital <code>#D6D2CA</code> → <code>#B0ACA4</code></td></tr>
+          <tr><th>Tamaños</th><td>Mesa 60 cm · Mueble 42 cm · Sobremesa 30 cm de ancho</td></tr>
+        </tbody>
+      </table>
+      <figure class="render"><img data-render="logo"><figcaption>Detalle del logo platino sobre la lámina retroiluminada</figcaption></figure>
+    </section>
+
+    <!-- MATERIALES -->
+    <section id="materiales" class="paso" data-vista="materiales" data-etiqueta="Detalle: esquina R30, línea de sombra y zócalo">
+      <p class="eyebrow">06 · Materiales para producción</p>
+      <h2>Materiales disponibles en el mercado</h2>
+      <p>Todo sale de proveedores con los que ya se fabricó la tienda de Centro Mayor: melamina, acrílico, perfilería de aluminio y LED de 24 V. No hay curvas compuestas, lacas especiales ni piezas fundidas.</p>
+      <table class="tabla">
+        <thead><tr><th>Componente</th><th>Material</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td>Cuerpo</td><td>MDF 18 mm melamina arena mate + canto PVC 2 mm</td><td>Sin pintura ni laca; resiste el uso en piso de venta</td></tr>
+          <tr><td>Esquinas</td><td>R30 solo en aristas verticales (pieza maciza torneada o MDF curvado)</td><td>Bordes suaves sin complicar el armado</td></tr>
+          <tr><td>Cubierta</td><td>Melamina roble claro 15 + 15 mm reengrosada, esquinas R30 por CNC</td><td>Calidez de la madera Cubitt sin el costo de una chapa natural</td></tr>
+          <tr><td>Lámina de luz</td><td>Acrílico opal 3 mm (o policarbonato opal, si hay que bajar costo)</td><td>Luz pareja, liviana y fácil de cambiar</td></tr>
+          <tr><td>Iluminación</td><td>Cinta LED COB 24 V 4000K, CRI &gt; 90, con driver interno</td><td>Línea continua sin puntos y misma temperatura en todo el sistema</td></tr>
+          <tr><td>Perfilería</td><td>Aluminio anodizado mate natural, perfil en U comercial</td><td>Precisión tecnológica sin piezas a medida</td></tr>
+          <tr><td>Logo</td><td>Acrílico 6 mm + vinilo aluminio cepillado</td><td>Platino sin pintura electrostática</td></tr>
+        </tbody>
+      </table>
+      <figure class="render"><img data-render="material"><figcaption>Esquina R30, cubierta flotante, luz indirecta y zócalo de aluminio</figcaption></figure>
+    </section>
+
+    <!-- DESPIECE -->
+    <section id="despiece" class="paso" data-vista="despiece" data-etiqueta="Despiece de la mesa de experiencia">
+      <p class="eyebrow">07 · Construcción</p>
+      <h2>Se arma en cinco pasos</h2>
+      <ol class="pasos">
+        <li>Zócalo de aluminio nivelado sobre el piso.</li>
+        <li>Cuerpo arena en dos módulos atornillados (lado cliente y lado vendedor).</li>
+        <li>Caja de luz frontal: fondo blanco, cinta COB y lámina opal en el perfil en U.</li>
+        <li>Cubierta de roble sobre listones rehundidos, que forman la línea de sombra.</li>
+        <li>Elevador opal, pasacables, bases de producto y logo platino.</li>
+      </ol>
+      <figure class="render"><img data-render="despiece"><figcaption>Despiece axonométrico de la mesa</figcaption></figure>
+    </section>
+
+    <!-- COSTOS -->
+    <section id="costos" class="paso" data-vista="familia" data-etiqueta="Familia completa">
+      <p class="eyebrow">08 · Presupuesto</p>
+      <h2>Costos de referencia</h2>
+      <p>Valores estimados de costo directo por unidad, calculados con los precios unitarios ya pagados en la tienda de Centro Mayor (<code>data/presupuesto.csv</code>). No incluyen AIU ni IVA y deben validarse con el taller antes de producir.</p>
+      <table class="tabla tabla-costos">
+        <thead><tr><th>Pieza</th><th>Rango (COP)</th><th>Base de cálculo</th></tr></thead>
+        <tbody>
+          <tr><td>Mesa de experiencia</td><td>4,6 – 5,4 M</td><td>Isla de relojes 1.3.1 ($3,9 M) + caja de luz frontal (≈ $0,9 M/m², ítem CL4) + logo (1.9.8)</td></tr>
+          <tr><td>Mueble de exhibición</td><td>3,0 – 3,6 M</td><td>Panel mural backlit 1.3.3 ($2,5 M) + gabinete inferior + logo</td></tr>
+          <tr><td>Display de sobremesa</td><td>0,6 – 0,9 M</td><td>Caja de luz tipo 1 CL6 ($580 k) + base y 3 checkpoints</td></tr>
+          <tr class="total"><td>Familia (1 mesa + 2 muebles + 1 sobremesa)</td><td>11,2 – 13,5 M</td><td>Costo directo, antes de AIU</td></tr>
+        </tbody>
+      </table>
+      <ul class="cumple">
+        <li>Un solo tipo de lámina, perfil y LED en las tres piezas: compras por volumen.</li>
+        <li>Sin pintura, laca ni curvas compuestas: menos horas de taller.</li>
+        <li>Cada módulo se arma con un solo tamaño de tablero, con poco desperdicio.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<!-- ============ MODELOS 3D IA ============ -->
+<section id="modelo-ia" class="bloque">
+  <div class="bloque-cabeza">
+    <p class="eyebrow">09 · Modelos 3D generados con Higgsfield</p>
+    <h2>La propuesta en 3D, desde los renders</h2>
+    <p>Higgsfield convirtió los renders limpios de la mesa y del mueble en modelos GLB texturizados. Gíralos para revisar volumen y proporción; la escena de arriba muestra las medidas exactas. Cada modelo pesa cerca de 60 MB, así que se carga solo cuando lo eliges.</p>
+  </div>
+  <div class="visor-ia-marco">
+    <div id="visor-ia" class="visor-ia"><p id="visor-ia-estado" class="visor-ia-estado">Elige un modelo para cargarlo.</p></div>
+    <div class="visor-ia-lado">
+      <button type="button" data-modelo="mesa" aria-pressed="false">Mesa de experiencia</button>
+      <button type="button" data-modelo="mueble" aria-pressed="false">Mueble de exhibición</button>
+      <figure class="render render-mini"><img data-render="fuenteMesa"><figcaption>Fuente del modelo de la mesa</figcaption></figure>
+      <figure class="render render-mini"><img data-render="fuenteMueble"><figcaption>Fuente del modelo del mueble</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BRIEF ============ -->
+<section id="brief" class="bloque bloque-arena">
+  <div class="bloque-cabeza">
+    <p class="eyebrow">10 · Cumplimiento del brief</p>
+    <h2>Lo que pidieron y cómo se resolvió</h2>
+  </div>
+  <div class="brief-grid">
+    <div>
+      <h3>ADN 2027</h3>
+      <ul class="check">
+        <li><strong>Forma</strong> Volúmenes ortogonales, proporciones ligeras y bordes R30.</li>
+        <li><strong>Material</strong> Arena, blanco, madera Cubitt y aluminio satinado.</li>
+        <li><strong>Luz</strong> LED 4000K integrado; la lámina de luz marca la jerarquía.</li>
+        <li><strong>Branding</strong> Logo en platino dentro de la lámina, no como adorno.</li>
+        <li><strong>Experiencia</strong> Touch &amp; Try en las tres piezas.</li>
+        <li><strong>Escala</strong> Modular, transportable y adaptable a cada retailer.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Qué NO hacer</h3>
+      <ul class="check">
+        <li>Sin saturar producto: 6 relojes en la mesa, jerarquía de 4 niveles en el mueble.</li>
+        <li>Un solo logo por pieza y por composición.</li>
+        <li>Cuatro materiales en total; ningún acabado negro.</li>
+        <li>Sin LED azul ni RGB, y sin LED con puntos (COB detrás de opal).</li>
+        <li>Sin cables, ranuras ni estructura a la vista; laterales terminados.</li>
+        <li>Sin complejidad constructiva: solo radios verticales y perfiles comerciales.</li>
+      </ul>
+    </div>
+    <div class="paleta">
+      <h3>Paleta del brief</h3>
+      <img src="propuesta-2027/assets/brief-paleta-2027.jpg" alt="Paleta de colores Cubitt 2027 del brief" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALERÍA ============ -->
+<section id="galeria" class="bloque">
+  <div class="bloque-cabeza">
+    <p class="eyebrow">11 · Galería</p>
+    <h2>Todos los renders</h2>
+  </div>
+  <div class="galeria">
+    <figure class="render"><img data-render="familia"><figcaption>Familia</figcaption></figure>
+    <figure class="render"><img data-render="mesa"><figcaption>Mesa</figcaption></figure>
+    <figure class="render"><img data-render="touch"><figcaption>Touch &amp; Try</figcaption></figure>
+    <figure class="render"><img data-render="vendedor"><figcaption>Lado vendedor</figcaption></figure>
+    <figure class="render"><img data-render="mueble"><figcaption>Mueble</figcaption></figure>
+    <figure class="render"><img data-render="modular"><figcaption>Composición modular</figcaption></figure>
+    <figure class="render"><img data-render="sobremesa"><figcaption>Sobremesa</figcaption></figure>
+    <figure class="render"><img data-render="logo"><figcaption>Logo platino</figcaption></figure>
+    <figure class="render"><img data-render="material"><figcaption>Materiales</figcaption></figure>
+    <figure class="render"><img data-render="despiece"><figcaption>Despiece</figcaption></figure>
+  </div>
+</section>
+
+<footer class="pie">
+  <img src="propuesta-2027/assets/logo/logo-cubitt-platino.png" alt="Cubitt" width="180" height="41">
+  <p>Propuesta de mobiliario 2027 · FARUK AGENCIA — Inversiones Rahman SAS / BAE Group</p>
+  <p class="pie-nota">Las imágenes y modelos son conceptuales. Dimensiones, materiales, acabados, estructura, costos, seguridad, instalación y mantenimiento se validan antes de producción. Confidencial — uso exclusivo CUBITT / FARUK AGENCIA SAS.</p>
+</footer>
+
+<dialog id="lightbox" class="lightbox">
+  <figure><img alt=""><figcaption></figcaption></figure>
+</dialog>
+
+<script type="module" src="propuesta-2027/js/app.js"></script>
+</body>
+</html>
