@@ -1,0 +1,64 @@
+capitulo_num,capitulo,item,descripcion,um,cantidad,vr_unitario_cop,vr_total_cop
+1,Preliminares y desmontes,1.1,"Desmonte y retiro de acabados (piso, cielo, paredes, aluminio y vidrio fachada) · horario nocturno",m²,33.0,36500,1204500
+1,Preliminares y desmontes,1.2,Limpieza y descapote inicial según protocolo C.C.,m²,33.0,25000,825000
+1,Preliminares y desmontes,1.3,Trazado y replanteo arquitectónico,m²,33.0,15000,495000
+1,Preliminares y desmontes,1.4,"Cerramiento de obra en yeso ½"" + señalización + puerta drywall",GL,1.0,2348000,2348000
+1,Preliminares y desmontes,1.5,"Pólizas, permisos y coordinación horarios nocturnos con el C.C.",GL,1.0,3500000,3500000
+2,Estructura metálica y divisiones,3.2.1,"Estructura cielo raso modulado, perfil C 1"" × 0,9 mm, módulo 0,60 × 0,60",m²,30.0,75000,2250000
+2,Estructura metálica y divisiones,3.2.2,"Drywall divisorio bodega, perfil C 3‑5/8"", h = 2,80 m, doble placa RH",m²,12.0,158000,1896000
+2,Estructura metálica y divisiones,3.2.4,Anclajes Hilti + platinas + carga suspendida,UN,30.0,21000,630000
+3,Carpintería arquitectónica,1.3.1,"Isla exhibición relojes #1 — 1,70 × 0,75 m, Rovere Pelikano + high gloss + LED 4100K + herraje c/llave",UN,1.0,3900000,3900000
+3,Carpintería arquitectónica,1.3.2,Isla exhibición relojes #2 — ídem,UN,1.0,3900000,3900000
+3,Carpintería arquitectónica,1.3.3,"Panel mural backlit 5 módulos — high gloss blanco + LED 4000K 1,13 × 1,60 m",UN,5.0,2500000,12500000
+3,Carpintería arquitectónica,1.3.4,Mostrador caja registradora — Rovere Pelikano + cubierta high gloss 18 mm + LED + cajonería cierre lento,UN,1.0,5900000,5900000
+3,Carpintería arquitectónica,1.3.5,"Puerta acceso caja (mueble con almacenamiento) 0,50 × 0,90 m",UN,1.0,1250000,1250000
+3,Carpintería arquitectónica,1.3.6,Mueble lateral para termos con estantería empotrada + iluminación indirecta 4100K,GL,1.0,8540000,8540000
+3,Carpintería arquitectónica,1.3.7,"Bancos blancos zona experiencia — acero lacado + polipiel, h = 0,75 m",UN,2.0,720000,1440000
+3,Carpintería arquitectónica,1.3.8,"Muro divisorio con puerta a bodega 0,80 × 2,10 m + chapa magnética",UN,1.0,4753472,4753472
+3,Carpintería arquitectónica,ESP.,Espejo decorativo zona exhibición,UN,1.0,540000,540000
+3,Carpintería arquitectónica,1.3.9,Anclaje tipo cuchilla para estanterías flotantes,UN,5.0,85000,425000
+3,Carpintería arquitectónica,1.3.11,Estantería metálica bodega,GL,1.0,5500000,5500000
+3,Carpintería arquitectónica,1.3.12,Escritorio bodega,UN,1.0,280000,280000
+3,Carpintería arquitectónica,1.3.13,Silla escritorio bodega,UN,1.0,210000,210000
+4,Cielo raso y fachada,1.4.1,"Placas de yeso ½"" 1,22 × 2,44 m",UN,13.0,46500,604500
+4,Cielo raso y fachada,1.4.2,Estructura en aluminio cielo raso,m²,30.0,8600,258000
+4,Cielo raso y fachada,1.4.3,Estuco,kg,46.35,5600,259560
+4,Cielo raso y fachada,1.4.4,Pintura blanca,UN,1.0,401900,401900
+4,Cielo raso y fachada,1.4.5,"Cenefa backlit: canal MDF perimetral + LED 24V (0,20 m)",ml,28.0,200000,5600000
+4,Cielo raso y fachada,1.4.6,Dintel en yeso estucado y pintado,GL,1.0,1070000,1070000
+4,Cielo raso y fachada,1.4.7,Refuerzo drywall con listones 8 × 4 cm,ml,3.0,8900,26700
+5,Pisos SPC + guardaescoba,1.5.1,Piso SPC Bosco Beige 1220 × 180 × 5 mm + nivelación,m²,30.9,95000,2935500
+5,Pisos SPC + guardaescoba,1.5.2,"Guardaescoba SPC h = 0,08 m",ml,24.5,24000,588000
+6,"Muros, enchapes y pintura",1.6.1,Pintura premium mate tono crema / marfil,m²,161.34,14500,2339430
+6,"Muros, enchapes y pintura",1.6.2,Estuco plástico ESTUCOR,m²,80.67,8700,701829
+6,"Muros, enchapes y pintura",1.6.4,Muro divisorio zona servicio en yeso,m²,5.23,220000,1150600
+7,Instalaciones eléctricas e iluminación,1.7.1a,"Acometida trifásica Cu 3×No.2 + 1×No.4 AWG (EMT 2"")",ml,24.94,200000,4988000
+7,Instalaciones eléctricas e iluminación,1.7.1b,Tablero trifásico 24 circuitos,GL,1.0,580000,580000
+7,Instalaciones eléctricas e iluminación,1.7.2,Cinta LED de incrustar 24W neutra,ml,16.0,205000,3280000
+7,Instalaciones eléctricas e iluminación,1.7.3,"Riel magnético con reflectores, proyectores y barras",UN,6.0,850000,5100000
+7,Instalaciones eléctricas e iluminación,1.7.4,Perfil empotrado doble cinta LED 4000K,UN,6.0,575000,3450000
+7,Instalaciones eléctricas e iluminación,1.7.5,Tomacorrientes,pto,12.0,105000,1260000
+7,Instalaciones eléctricas e iluminación,1.7.6,Salidas de iluminación,pto,6.0,205000,1230000
+7,Instalaciones eléctricas e iluminación,1.7.7,Sistema de sonido en cielo raso (control + bafles),GL,1.0,3100000,3100000
+8,Aire acondicionado,8.1.1,"Equipo A/C 18.000–24.000 BTU + ductos de ventilación, instalación completa",GL,1.0,11800000,11800000
+9,Señalética y branding,1.9.3b,Letrero principal CUBITT en cenefa acero inoxidable — acrílico + LED 5000K,GL,1.0,2450000,2450000
+9,Señalética y branding,1.9.3c,Bolsillos de acrílico,UN,16.0,20000,320000
+9,Señalética y branding,1.9.6,"Videowall LED 1,65 × 3,50 m *(reemplazado por caja de luz — ver §9)*",UN,1.0,10250000,10250000
+9,Señalética y branding,1.9.7,Cableado y gestión de contenido videowall,UN,1.0,450000,450000
+9,Señalética y branding,1.9.8,Logo CUBITT superior — acrílico opaco 3 mm + luz 5000K,UN,1.0,380000,380000
+9,Señalética y branding,1.9.9,"TV 70""",UN,1.0,4200000,4200000
+9,Señalética y branding,1.9.10,Soporte audífonos — base mesa,UN,3.0,85000,255000
+9,Señalética y branding,1.9.11,Soporte audífonos — base pared,UN,3.0,45000,135000
+9,Señalética y branding,1.9.12,Base bafles (Power Pro / Plus / Go) — acrílico blanco,UN,3.0,22000,66000
+9,Señalética y branding,1.9.13,Base Power Buds — caja acrílica + tornillo de seguridad,UN,6.0,80000,480000
+9,Señalética y branding,1.9.14,Base relojes en mesa — acrílico blanco,UN,8.0,17000,136000
+9,Señalética y branding,1.9.15,Soporte para básculas,UN,2.0,45000,90000
+9,Señalética y branding,CL3,Caja de luz superior recepción 1022 × 2750 mm,UN,1.0,2000000,2000000
+9,Señalética y branding,CL4,Caja de luz tipo 2 — 925 × 930 mm,UN,3.0,780000,2340000
+9,Señalética y branding,CL5,Caja de luz superior muro izquierdo 1560 × 1050 mm,UN,1.0,1950000,1950000
+9,Señalética y branding,CL6,Caja de luz tipo 1 — 925 × 450 mm,UN,1.0,580000,580000
+10,Aseo y entrega,1.11.1,Limpieza post‑obra especializada (protocolo C.C.),GL,1.0,750000,750000
+10,Aseo y entrega,1.11.2,Retoques finales y correcciones menores,GL,1.0,780000,780000
+11,Cortina enrollable de seguridad,11.1,"Cortina en lama de acero galvanizado microperforado cal. 22/20, pintura electrostática, guías con cinta antirruido",GL,1.0,12500000,12500000
+11,Cortina enrollable de seguridad,11.2,"Motor lateral 600 kg (110/220V), kit de emergencia por cadena, central + 2 controles",GL,1.0,2200000,2200000
+11,Cortina enrollable de seguridad,11.3,"Instalación nocturna con cuadrilla certificada en alturas, izaje y calibración",GL,1.0,1800000,1800000

@@ -1,0 +1,24 @@
+# AGENTS.md — Guía para agentes de IA
+
+Repositorio de la propuesta de adecuación de la **Tienda CUBITT** (C.C. Centro Mayor, Bogotá), elaborada por FARUK AGENCIA — Inversiones Rahman SAS / BAE Group. No es un proyecto de software: es documentación de obra y diseño interior.
+
+## Dónde está cada cosa
+
+- `README.md` — fuente principal: datos del local, presupuesto, alcance por capítulo, materiales, cronograma, estado de obra y documentos fuente.
+- `data/presupuesto.csv` — los 63 ítems del presupuesto (capítulo, ítem, descripción, unidad, cantidad, valor unitario y total en COP). Úsalo para cualquier cálculo.
+- `assets/*.png` — esquemas generados desde la propuesta (planta, costos, cronograma, mueble, paleta, estado).
+- `tools/generar_imagenes.py` — regenera los PNG: `python3 tools/generar_imagenes.py` (requiere matplotlib).
+
+## Cifras clave
+
+- Área neta 37,4 m² · zona comercial ≈24,0 m² · bodega ≈13,4 m² · frente 9,97 m · fondo ≈3,75 m.
+- Costo directo $157.122.991 · total con AIU 30 % $204.259.888 · total con IVA sobre utilidad $207.842.292 (COP).
+- Plazo contractual 40 días calendario.
+
+## Reglas al trabajar aquí
+
+- Los valores en COP usan punto como separador de miles en el README y números enteros en el CSV.
+- Si cambias un valor del presupuesto, actualiza el README, el CSV y vuelve a generar las imágenes para que todo coincida.
+- El Video Wall (ítem 1.9.6) fue reemplazado por caja de luz en la Semana 4; el presupuesto original aún lo lista.
+- Las imágenes son esquemas ilustrativos, no planos oficiales. El logo oficial de CUBITT debe venir del manual de marca del cliente (`assets/logo-cubitt.png`, pendiente).
+- Documento confidencial: uso exclusivo CUBITT / FARUK AGENCIA SAS.
