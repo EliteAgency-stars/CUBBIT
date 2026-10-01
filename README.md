@@ -2,6 +2,8 @@
 
 ![Planta de zonificación CUBITT](assets/01-plano-zonificacion.png)
 
+> **Nuevo · Propuesta de mobiliario 2027 «Línea Platino»:** sitio en [`index.html`](index.html) (escena 3D interactiva + renders Higgsfield) y ficha técnica en [`propuesta-2027/PROPUESTA.md`](propuesta-2027/PROPUESTA.md).
+
 > Repositorio de referencia del proyecto de adecuación del local comercial **CUBITT** (tecnología y accesorios, línea smartwatch **VIVA PRO 2**), elaborado por **FARUK AGENCIA — Inversiones Rahman SAS** / **BAE Group**. Consolida la propuesta económica, alcance por capítulos, cronograma, estado de obra e imágenes de marca.
 
 ---
@@ -245,7 +247,7 @@
 | `assets/04-mueble-attenza-alzado.png` | Alzado acotado del mueble CUBITT / ATTENZA |
 | `assets/05-paleta-materiales.png` | Paleta de materiales y color de marca |
 | `assets/06-estado-obra-s5.png` | Estado de cada capítulo al corte de la Semana 5 |
-| `assets/logo-cubitt.png` | **Pendiente:** agregar el logo oficial desde el manual de marca del cliente |
+| `Cubitt_Logo_Full_black 2.png` | Logo oficial CUBITT (negro). Versión platino en `propuesta-2027/assets/logo/` |
 
 > Las imágenes son esquemas generados a partir de la propuesta. No reemplazan los planos arquitectónicos ni los renders oficiales.
 
@@ -343,6 +345,8 @@ CUBBIT/
 ├── CLAUDE.md                    ← guía para Claude Code
 ├── assets/                      ← imágenes PNG del proyecto
 ├── data/presupuesto.csv         ← presupuesto ítem por ítem, legible por máquina
+├── index.html                   ← sitio de la propuesta de mobiliario 2027
+├── propuesta-2027/              ← CSS, JS (three.js), logo platino y ficha PROPUESTA.md
 └── tools/generar_imagenes.py    ← script que regenera las imágenes
 ```
 
