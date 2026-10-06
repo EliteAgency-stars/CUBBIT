@@ -67,13 +67,13 @@ export const PLANOS = {
     titulo: 'Display de sobremesa',
     ancho: 500, fondo: 250, radio: 20,
     zonas: [
-      { x: -240, y: -125, w: 480, h: 35, tipo: 'luz', etiqueta: 'Caja de luz + banda con logo' },
+      { x: -240, y: -125, w: 480, h: 35, tipo: 'luz', etiqueta: 'Caja de luz · arte Viva Pro 2' },
       { x: -230, y: 105, w: 460, h: 18, tipo: 'inox', etiqueta: 'Riel de precio' },
     ],
     productos: ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac'].map((n, i) => ({
       n, x: -150 + i * 150, y: 20, w: 70, nombre: ['Viva Pro 2', 'Viva 2', 'Viva Lite'][i],
     })),
-    frente: '3 checkpoints integrados en la madera',
+    frente: 'Frente: logo platino en la base Capri · 3 checkpoints integrados en la madera',
   },
   kids: {
     titulo: 'Mueble Cubitt Jr & Teens',

@@ -126,14 +126,14 @@ function cajaDeLuz(p, w, h, arte, x, y, z, rotY = 0, despiece, { borde = 0.022, 
 // Logo oficial Cubitt en platino con halo cálido 3000K
 let LOGO = null, HALO = null;
 const PROPORCION_LOGO = 951 / 4154;
-function logoPlatino(p, ancho, x, y, z, rotY = 0, despiece) {
+function logoPlatino(p, ancho, x, y, z, rotY = 0, despiece, separacion = 0.012) {
   const g = new THREE.Group();
   const alto = ancho * PROPORCION_LOGO;
   const halo = p.mat(new THREE.MeshBasicMaterial({ map: HALO, color: COLOR.luz3000, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), 'halo');
   const mHalo = new THREE.Mesh(new THREE.PlaneGeometry(ancho * 1.18, alto * 1.9), halo);
   const letras = p.mat({ map: LOGO, transparent: true, alphaTest: 0.35, metalness: 0.8, roughness: 0.28, color: 0xdedad3 });
   const mLetras = new THREE.Mesh(new THREE.PlaneGeometry(ancho, alto), letras);
-  mLetras.position.z = 0.012;
+  mLetras.position.z = separacion;
   g.add(mHalo, mLetras);
   g.position.set(x, y, z);
   g.rotation.y = rotY;
@@ -279,9 +279,8 @@ function crearSobremesa(tx) {
   lineaLed(p, 0.46, 0, 0.037, 0.118);
   cuerpo(p, 0.5, 0.045, 0.25, duna, 0, 0.037, 0, [0, 0.06, 0], 0.02);
   cajaDeLuz(p, 0.48, 0.2, tx.arteSobremesa, 0, 0.19, -0.105, 0, [0, 0.14, -0.06]);
-  const banda = p.mat({ color: COLOR.aluminio, metalness: 0.85, roughness: 0.35 });
-  p.caja(0.48, 0.065, 0.03, banda, 0, 0.322, -0.11, 0.012, [0, 0.2, -0.06]);
-  logoPlatino(p, 0.17, 0, 0.322, -0.094, 0, [0, 0.2, -0.04]);
+  // Sin banda superior: el logo platino va al frente de la base Capri, bajo la línea LED
+  logoPlatino(p, 0.12, 0, 0.0175, 0.1255, 0, undefined, 0.004);
   ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac'].forEach((n, i) => producto(p, n, 0.07, -0.15 + i * 0.15, 0.082, 0.02, { despiece: [0, 0.14, 0] }));
   const inox = p.mat({ color: COLOR.inox, metalness: 1, roughness: 0.22 });
   p.caja(0.46, 0.022, 0.006, inox, 0, 0.06, 0.128, 0.002);
