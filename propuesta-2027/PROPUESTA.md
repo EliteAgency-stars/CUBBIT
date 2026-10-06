@@ -43,7 +43,8 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - Modelo 3D: [`modelos/mueble-cubitt-2027-x2.glb`](modelos/mueble-cubitt-2027-x2.glb) (1,6 MB; los dos módulos comparten geometría).
 
 ### 03 · Display de sobremesa — 50 × 30 × 25 cm
-- Basado en el display con checkpoints actual: base Capri con LED 3000K, plataforma Duna, caja de luz con banda de aluminio y logo platino, tres checkpoints y riel inox.
+- Basado en el display con checkpoints actual: base Capri con LED 3000K, plataforma Duna, caja de luz sin banda superior (el arte queda limpio), tres checkpoints y riel inox.
+- El logo platino (12 cm, halo 3000K) pasa al frente de la base Capri, bajo la línea LED.
 
 ### 04 · Mueble Cubitt Jr & Teens — 120 × 125 × 55 cm (nuevo)
 - **Mesón infantil a 60 cm** (alcance de niños de 4 a 10 años) y **mesón de padres a 90 cm**.
