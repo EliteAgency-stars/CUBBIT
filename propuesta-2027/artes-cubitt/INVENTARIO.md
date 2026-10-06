@@ -3,7 +3,7 @@
 Copia de la carpeta **ARTES CUBITT** entregada por FARUK AGENCIA (artes del mobiliario, fotos de producto, planos y archivos fuente).
 Las versiones optimizadas para la web están en `web/` y los recortes sin fondo en `productos/` (`python tools/preparar_artes.py`).
 
-Total: **89 archivos**.
+Total: **90 archivos**.
 
 | Archivo | Tipo | KB | Píxeles |
 |---|---|---:|---|
@@ -77,6 +77,7 @@ Total: **89 archivos**.
 | Mueble_Lateral Aura Pro 40x76 cm.jpg | Arte / valla | 1.585 | 2863 × 5415 |
 | plano mesa de audio cubitt.pdf | Plano / medidas | 266 |  |
 | PRESENTACION CUBITT DIC25 ESPAÑOL (1).pdf | Presentación de marca | 22.571 |  |
+| primer mueble mesa cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 11.242 |  |
 | relacion de pagos tienda cubitt primera semana.xlsx | Documento | 13 |  |
 | Reloj Inteligente Cubitt Jr. CTJR-2 Artic Blue 01.jpg | Foto de producto | 175 | 1000 × 1000 |
 | Reloj Inteligente Cubitt Jr. CTJR-2 Artic Blue 02.jpg | Foto de producto | 241 | 1000 × 1000 |

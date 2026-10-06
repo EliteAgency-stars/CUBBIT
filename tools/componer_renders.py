@@ -1,133 +1,209 @@
-"""Compone los renders de Higgsfield con el logo oficial y las artes reales de Cubitt.
+"""Compone los renders de Higgsfield con artes Cubitt «a la talla» y el logo oficial en platino.
 
-Higgsfield genera cada escena con marcadores de color:
-  - verde croma (#00FF00) en cada caja de luz  -> se reemplaza por un arte real (tela backlight)
-  - magenta (#FF00FF) donde va el logo          -> se reemplaza por el logo Cubitt platino oficial
-Así el logo y las artes nunca los dibuja la IA: se pegan los archivos originales con perspectiva.
+Higgsfield deja cada caja de luz en verde croma (#00FF00) y el lugar del logo en una placa magenta (#FF00FF).
+Este script, para cada render:
+  1. separa cada caja de luz y cada placa (sin unir cajas vecinas) y ajusta sus cuatro bordes con rectas;
+  2. calcula la proporción REAL del rectángulo visto en perspectiva (puntos de fuga + Zhang & He), así ni el
+     arte ni el logo quedan estirados al proyectarlos;
+  3. genera el arte exactamente a esa proporción (tools/artes_a_la_talla.py: nada estirado ni difuminado) y lo
+     pega con homografía, conservando las sombras y brillos que el render tenía sobre la tela;
+  4. pega el logo oficial platino sin deformarlo, con halo de contorno cálido 3000K sobre el Capri;
+  5. limpia el reflejo verde que el croma dejaba en piso y muebles.
 
-Uso: python3 componer_renders.py entrada.png salida.jpg arte1,arte2,... [dir_artes] [cierre]
-Imprime un JSON con las regiones encontradas y la verificación SIFT del logo.
+Uso: python3 componer_renders.py entrada.png salida.jpg arte0,arte1,... [dir_artes_salida] [--piso]
+     (artes en el orden de las cajas de izquierda a derecha: nueva-era, viva-pro-2, terra, aura-pro-2, rapunzel)
+Imprime un JSON con las cajas, proporciones y artes usados.
 """
 import json
-import math
+import os
 import sys
 
 import cv2
 import numpy as np
 
-ARTES_DIR = sys.argv[4] if len(sys.argv) > 4 else 'a'
-# separación entre cajas de luz vecinas (fracción del ancho usada para cerrar huecos de objetos delante)
-CIERRE = float(sys.argv[5]) if len(sys.argv) > 5 else 0.02
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import artes_a_la_talla  # noqa: E402
 
+RAIZ = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'propuesta-2027')
+LOGO = os.path.join(RAIZ, 'assets', 'logo', 'logo-cubitt-platino.png')
+CALIDO = np.array([107, 180, 255], np.float32)  # BGR de una luz 3000K
+
+
+# ------------------------------------------------------------------ detección
 
 def mascaras(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     verde = cv2.inRange(hsv, (42, 110, 90), (78, 255, 255))
-    # magenta puro (#FF00FF ≈ H 150): rango estrecho para no confundir productos rosados o fucsia
     magenta = cv2.inRange(hsv, (141, 130, 110), (159, 255, 255))
     return verde, magenta
 
 
-def regiones(mask, area_min):
-    """Agrupa la máscara en regiones (cerrando huecos de objetos delante) y devuelve (cuadrilátero, máscara_real)."""
-    h, w = mask.shape
-    k = max(3, int(w * CIERRE)) | 1
+def regiones(mask, area_min, k=5):
+    """Componentes conectados con un cierre pequeño: cajas vecinas separadas por un marco no se unen."""
     cerrada = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (k, k)))
     n, lab, stats, _ = cv2.connectedComponentsWithStats(cerrada)
-    salida = []
+    out = []
     for i in range(1, n):
         if stats[i, cv2.CC_STAT_AREA] < area_min:
             continue
         zona = (lab == i).astype(np.uint8) * 255
-        quad = cuadrilatero(zona)
-        real = cv2.bitwise_and(mask, zona)
-        salida.append((quad, real, int(stats[i, cv2.CC_STAT_AREA])))
-    salida.sort(key=lambda r: -r[2])
-    return salida
+        out.append((cuadrilatero(zona), cv2.bitwise_and(mask, zona), zona))
+    return sorted(out, key=lambda r: r[0][:, 0].mean())
 
 
-def cuadrilatero(zona):
-    """Cuatro esquinas (TL, TR, BR, BL) del contorno: polígono aproximado; si no da 4 lados, puntos extremos."""
-    cont = max(cv2.findContours(zona, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0], key=cv2.contourArea)
-    hull = cv2.convexHull(cont)
+def _esquinas_aprox(hull):
     per = cv2.arcLength(hull, True)
-    pts = None
-    for f in np.linspace(0.01, 0.12, 23):
+    for f in np.linspace(0.01, 0.15, 29):
         ap = cv2.approxPolyDP(hull, f * per, True)
         if len(ap) == 4:
-            pts = ap.reshape(4, 2).astype(np.float32)
-            break
-    if pts is None:
-        p = hull.reshape(-1, 2).astype(np.float64)
-        s, d = p.sum(1), p[:, 0] - p[:, 1]
-        return np.array([p[s.argmin()], p[d.argmax()], p[s.argmax()], p[d.argmin()]], np.float32)
+            return ap.reshape(4, 2).astype(np.float64)
+    p = hull.reshape(-1, 2).astype(np.float64)
+    s, d = p.sum(1), p[:, 0] - p[:, 1]
+    return np.array([p[s.argmin()], p[d.argmax()], p[s.argmax()], p[d.argmin()]])
+
+
+def _ordenar(pts):
     c = pts.mean(0)
-    pts = pts[np.argsort(np.arctan2(pts[:, 1] - c[1], pts[:, 0] - c[0]))]  # orden horario en imagen
-    i = int(np.argmin(pts.sum(1)))
-    pts = np.roll(pts, -i, 0)
-    # el lado TL→TR debe ser el más horizontal; si no, rotar un paso
+    pts = pts[np.argsort(np.arctan2(pts[:, 1] - c[1], pts[:, 0] - c[0]))]
+    pts = np.roll(pts, -int(np.argmin(pts.sum(1))), 0)
     if abs(pts[1, 1] - pts[0, 1]) > abs(pts[1, 0] - pts[0, 0]):
         pts = np.roll(pts, 1, 0)
     return pts
 
 
-def medidas(quad):
-    tl, tr, br, bl = quad
-    ancho = (np.linalg.norm(tr - tl) + np.linalg.norm(br - bl)) / 2
-    alto = (np.linalg.norm(bl - tl) + np.linalg.norm(br - tr)) / 2
-    return ancho, alto
+def cuadrilatero(zona):
+    """Esquinas TL, TR, BR, BL: una recta ajustada a cada lado y sus cortes (las esquinas redondeadas
+    de la caja no recortan el arte; la máscara real las respeta al pegar)."""
+    cont = max(cv2.findContours(zona, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea)
+    ap = _ordenar(_esquinas_aprox(cv2.convexHull(cont)))
+    pts = cont.reshape(-1, 2).astype(np.float64)
+    lineas = []
+    for i in range(4):
+        a, b = ap[i], ap[(i + 1) % 4]
+        L = np.linalg.norm(b - a)
+        u = (b - a) / L
+        t = (pts - a) @ u
+        dist = np.abs((pts - a) @ np.array([-u[1], u[0]]))
+        sel = pts[(t > 0.12 * L) & (t < 0.88 * L) & (dist < max(4, 0.04 * L))]
+        if len(sel) < 10:
+            lineas.append((a, u))
+            continue
+        vx, vy, x0, y0 = cv2.fitLine(sel.astype(np.float32), cv2.DIST_HUBER, 0, 0.01, 0.01).ravel()
+        lineas.append((np.array([x0, y0]), np.array([vx, vy])))
+    esq = []
+    for i in range(4):
+        (p1, d1), (p2, d2) = lineas[i - 1], lineas[i]
+        try:
+            s = np.linalg.solve(np.array([d1, -d2]).T, p2 - p1)
+            esq.append(p1 + s[0] * d1)
+        except np.linalg.LinAlgError:
+            esq.append(ap[i])
+    return np.array(esq, np.float32)
 
 
-def ajustar(arte, ancho, alto):
-    """Ajusta el arte a ancho×alto: 'cover' si las proporciones son parecidas; si no, 'contain' sobre el mismo arte difuminado."""
-    W, H = int(round(ancho)), int(round(alto))
-    ah, aw = arte.shape[:2]
-    if abs(math.log((W / H) / (aw / ah))) < 0.28:
-        esc = max(W / aw, H / ah)
-        r = cv2.resize(arte, (math.ceil(aw * esc), math.ceil(ah * esc)), interpolation=cv2.INTER_AREA)
-        y, x = (r.shape[0] - H) // 2, (r.shape[1] - W) // 2
-        return r[y:y + H, x:x + W]
-    esc = max(W / aw, H / ah)
-    fondo = cv2.resize(arte, (math.ceil(aw * esc), math.ceil(ah * esc)))
-    y, x = (fondo.shape[0] - H) // 2, (fondo.shape[1] - W) // 2
-    fondo = cv2.GaussianBlur(fondo[y:y + H, x:x + W], (0, 0), max(W, H) / 25)
-    fondo = cv2.addWeighted(fondo, 0.85, np.full_like(fondo, 255), 0.15, 0)
-    esc = min(W / aw, H / ah) * 0.96
-    r = cv2.resize(arte, (int(aw * esc), int(ah * esc)), interpolation=cv2.INTER_AREA)
-    y, x = (H - r.shape[0]) // 2, (W - r.shape[1]) // 2
-    fondo[y:y + r.shape[0], x:x + r.shape[1]] = r
-    return fondo
+# ------------------------------------------------------------------ perspectiva
 
+def _fuga(quad):
+    """Punto de fuga de los lados superior e inferior (None si son casi paralelos)."""
+    tl, tr, br, bl = [np.append(p, 1.0) for p in quad.astype(np.float64)]
+    v = np.cross(np.cross(tl, tr), np.cross(bl, br))
+    if abs(v[2]) < 1e-9 or np.linalg.norm(v[:2] / v[2]) > 1e6:
+        return None
+    return v[:2] / v[2]
+
+
+def estimar_focal(img_wh, cajas, placas, defecto=2.0):
+    """Focal (px) con dos planos verticales perpendiculares del mismo mueble: la caja de luz del frente y la
+    placa del logo en el lateral. f² = -(v1-c)·(v2-c). Sin ese par, defecto × ancho (lente de producto)."""
+    W, H = img_wh
+    c = np.array([W / 2, H / 2])
+    medidas = []
+    for qp in placas:
+        if not cajas:
+            break
+        qc = min(cajas, key=lambda q: np.linalg.norm(q.mean(0) - qp.mean(0)))
+        v1, v2 = _fuga(qc), _fuga(qp)
+        if v1 is None or v2 is None:
+            continue
+        a, b = v1 - c, v2 - c
+        if np.sign(a[0]) == np.sign(b[0]):
+            continue  # misma cara del mueble
+        f2 = -(a @ b)
+        if f2 > 0 and 0.8 * W < np.sqrt(f2) < 5 * W:
+            medidas.append(np.sqrt(f2))
+    return (float(np.median(medidas)) if medidas else defecto * W), bool(medidas)
+
+
+def proporcion_real(quad, W, H, f):
+    """Ancho/alto real del rectángulo proyectado (Zhang & He, 'Whiteboard scanning and image enhancement')."""
+    c = np.array([W / 2, H / 2])
+    tl, tr, br, bl = [np.append(np.asarray(p, np.float64) - c, 1.0) for p in quad]
+    m1, m2, m3, m4 = tl, tr, bl, br
+    k2 = np.dot(np.cross(m1, m4), m3) / np.dot(np.cross(m2, m4), m3)
+    k3 = np.dot(np.cross(m1, m4), m2) / np.dot(np.cross(m3, m4), m2)
+    n2, n3 = k2 * m2 - m1, k3 * m3 - m1
+    return float(np.sqrt((n2[0] ** 2 + n2[1] ** 2 + (f * n2[2]) ** 2) / (n3[0] ** 2 + n3[1] ** 2 + (f * n3[2]) ** 2)))
+
+
+def pegar(img, plano, quad, mask_real, sombreado=None):
+    H, W = plano.shape[:2]
+    src = np.array([[0, 0], [W - 1, 0], [W - 1, H - 1], [0, H - 1]], np.float32)
+    M = cv2.getPerspectiveTransform(src, quad)
+    warp = cv2.warpPerspective(plano, M, (img.shape[1], img.shape[0]), flags=cv2.INTER_LINEAR,
+                               borderMode=cv2.BORDER_REPLICATE).astype(np.float32)
+    if sombreado is not None:
+        warp = warp * sombreado[..., None]
+    m = cv2.dilate(mask_real, np.ones((3, 3), np.uint8))
+    m = cv2.GaussianBlur(m, (0, 0), 0.8).astype(np.float32)[..., None] / 255
+    return np.clip(img * (1 - m) + warp * m, 0, 255).astype(np.uint8)
+
+
+def sombreado_tela(img, mask):
+    """Variación de luz que el render dejó sobre la tela verde (sombras del marco, reflejos), suavizada."""
+    v = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[..., 2].astype(np.float32)
+    sel = mask > 0
+    if sel.sum() < 100:
+        return None
+    ref = np.median(v[sel])
+    s = np.ones_like(v)
+    s[sel] = v[sel] / max(ref, 1)
+    s = cv2.GaussianBlur(s, (0, 0), 6)
+    return np.clip(s, 0.86, 1.04) ** 0.8
+
+
+# ------------------------------------------------------------------ logo
 
 def placa_logo(logo_rgba, ancho, alto, color):
-    """Placa del color del panel con el logo platino centrado, sombra suave y halo cálido 3000K."""
+    """Placa del color del panel con el logo platino (sin deformar) y halo de contorno cálido 3000K."""
     W, H = int(round(ancho)), int(round(alto))
-    placa = np.full((H, W, 3), color, np.float32)
     lh, lw = logo_rgba.shape[:2]
-    esc = min(W * 0.86 / lw, H * 0.80 / lh)
+    esc = min(W * 0.84 / lw, H * 0.62 / lh)
     l = cv2.resize(logo_rgba, (max(1, int(lw * esc)), max(1, int(lh * esc))), interpolation=cv2.INTER_AREA).astype(np.float32)
     y, x = (H - l.shape[0]) // 2, (W - l.shape[1]) // 2
     a = np.zeros((H, W), np.float32)
     a[y:y + l.shape[0], x:x + l.shape[1]] = l[:, :, 3] / 255
     rgb = np.zeros((H, W, 3), np.float32)
     rgb[y:y + l.shape[0], x:x + l.shape[1]] = l[:, :, :3]
-    sig = max(1.0, l.shape[0] * 0.08)
-    halo = cv2.GaussianBlur(a, (0, 0), sig * 2.2)[..., None]
-    placa = placa * (1 - 0.35 * halo) + np.array([107, 180, 255], np.float32) * 0.35 * halo  # BGR ≈ 3000K
-    sombra = cv2.GaussianBlur(np.roll(np.roll(a, max(1, int(sig * 0.5)), 0), max(1, int(sig * 0.3)), 1), (0, 0), sig * 0.6)[..., None]
-    placa = placa * (1 - 0.30 * sombra)
-    placa = placa * (1 - a[..., None]) + rgb * a[..., None]
+    alto_letra = max(2.0, l.shape[0])
+    placa = np.full((H, W, 3), color, np.float32)
+    # luz que sale por detrás de las letras (separadores de 15 mm) y baña el Capri: halo amplio + contorno intenso
+    halo = cv2.GaussianBlur(a, (0, 0), alto_letra * 0.18)
+    halo /= max(halo.max(), 1e-6)
+    contorno = cv2.GaussianBlur(cv2.dilate(a, np.ones((3, 3), np.uint8)), (0, 0), alto_letra * 0.04)
+    contorno = np.clip(contorno * 1.5, 0, 1)
+    luz = np.clip(0.50 * halo + 0.70 * contorno, 0, 1)[..., None]
+    # el Capri se tiñe de ámbar cerca de las letras y se aclara un poco (la luz no es blanca: 3000K)
+    placa = placa * (1 - 0.55 * luz) + CALIDO * 0.55 * luz
+    placa = placa + (CALIDO * 0.35) * luz
+    # sombra corta del canto del acrílico
+    off = max(1, int(alto_letra * 0.04))
+    sombra = cv2.GaussianBlur(np.roll(np.roll(a, off, 0), off // 2, 1), (0, 0), alto_letra * 0.03)[..., None]
+    placa = placa * (1 - 0.18 * sombra * (1 - a[..., None]))
+    # cara platino; el borde de las letras toma un filo cálido
+    filo = np.clip(a - cv2.erode(a, np.ones((3, 3), np.uint8)), 0, 1)[..., None]
+    cara = rgb * (1 - 0.45 * filo) + CALIDO * 0.45 * filo
+    placa = placa * (1 - a[..., None]) + cara * a[..., None]
     return np.clip(placa, 0, 255).astype(np.uint8)
-
-
-def pegar(img, plano, quad, mask_real):
-    H, W = plano.shape[:2]
-    src = np.array([[0, 0], [W - 1, 0], [W - 1, H - 1], [0, H - 1]], np.float32)
-    M = cv2.getPerspectiveTransform(src, quad)
-    warp = cv2.warpPerspective(plano, M, (img.shape[1], img.shape[0]), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-    m = cv2.dilate(mask_real, np.ones((5, 5), np.uint8))
-    m = cv2.GaussianBlur(m, (0, 0), 1.2).astype(np.float32)[..., None] / 255
-    return (img * (1 - m) + warp * m).astype(np.uint8)
 
 
 def color_anillo(img, mask):
@@ -136,65 +212,75 @@ def color_anillo(img, mask):
     return np.median(px, 0) if len(px) else np.array([170, 185, 200])
 
 
-def verificar_logo(img, logo_rgba):
-    """Cuenta inliers SIFT entre el logo oficial y la imagen final (alto = logo correcto presente)."""
-    ref = np.full(logo_rgba.shape[:2], 150, np.uint8)
-    a = logo_rgba[:, :, 3] / 255.0
-    ref = (ref * (1 - a) + cv2.cvtColor(logo_rgba[:, :, :3], cv2.COLOR_BGR2GRAY) * a).astype(np.uint8)
-    ref = cv2.resize(ref, (800, int(800 * ref.shape[0] / ref.shape[1])))
-    sift = cv2.SIFT_create()
-    k1, d1 = sift.detectAndCompute(ref, None)
-    k2, d2 = sift.detectAndCompute(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), None)
-    if d1 is None or d2 is None:
-        return 0
-    buenos = [m for m, n in cv2.BFMatcher().knnMatch(d1, d2, k=2) if m.distance < 0.75 * n.distance]
-    if len(buenos) < 6:
-        return len(buenos)
-    p1 = np.float32([k1[m.queryIdx].pt for m in buenos])
-    p2 = np.float32([k2[m.trainIdx].pt for m in buenos])
-    _, inl = cv2.findHomography(p1, p2, cv2.RANSAC, 5.0)
-    return int(inl.sum()) if inl is not None else 0
+# ------------------------------------------------------------------ limpieza
+
+def quitar_reflejo_verde(img, cajas):
+    """El croma de la caja del frente tiñe de verde el piso. Se neutraliza solo por debajo del borde inferior de
+    cada caja y cerca de ella: se resta el exceso de verde respecto al tono neutro del resto de la imagen."""
+    H, W = img.shape[:2]
+    b, g, r = [c.astype(np.float32) for c in cv2.split(img)]
+    d = g - (r + b) / 2
+    base = float(np.median(d))
+    yy = np.arange(H)[:, None]
+    xx = np.arange(W)[None, :]
+    peso = np.zeros((H, W), np.float32)
+    for quad, _, z in cajas:
+        tl, tr, br, bl = quad
+        # recta del borde inferior de la caja
+        t = np.clip((xx - bl[0]) / max(br[0] - bl[0], 1), 0, 1)
+        y_inf = bl[1] + t * (br[1] - bl[1])
+        debajo = (yy > y_inf + 4) & (xx > bl[0] - 0.15 * (br[0] - bl[0])) & (xx < br[0] + 0.15 * (br[0] - bl[0]))
+        cerca = cv2.GaussianBlur(z.astype(np.float32) / 255, (0, 0), 160)
+        cerca = np.clip(cerca / 0.02, 0, 1)
+        peso = np.maximum(peso, cerca * debajo)
+    sat = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[..., 1]
+    exceso = np.clip(d - base - 1.5, 0, None) * peso * (sat < 90)
+    exceso = cv2.GaussianBlur(exceso, (0, 0), 3)
+    return cv2.merge([b + exceso * 0.15, g - exceso, r + exceso * 0.25]).clip(0, 255).astype(np.uint8), int((exceso > 2).sum())
 
 
 def main():
-    entrada, salida, lista = sys.argv[1], sys.argv[2], [x for x in sys.argv[3].split(',') if x]
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    piso = '--piso' in sys.argv  # la caja de luz está cerca del piso y lo tiñe de verde
+    entrada, salida, lista = args[0], args[1], [x for x in args[2].split(',') if x]
+    dir_artes = args[3] if len(args) > 3 else None
     img = cv2.imread(entrada)
-    logo = cv2.imread(f'{ARTES_DIR}/logo.png', cv2.IMREAD_UNCHANGED)
-    area_min = img.shape[0] * img.shape[1] * 0.0015
+    H, W = img.shape[:2]
+    logo = cv2.imread(LOGO, cv2.IMREAD_UNCHANGED)
     verde, magenta = mascaras(img)
-    reporte = {'imagen': entrada, 'cajas': [], 'logos': []}
-
-    artes = {n: cv2.imread(f'{ARTES_DIR}/{n}.jpg') for n in set(lista)}
-    usos = {n: 0 for n in lista}
-    compuesto = np.zeros(verde.shape, np.uint8)
-    for quad, real, area in regiones(verde, area_min):
-        ancho, alto = medidas(quad)
-        prop = ancho / max(alto, 1)
-        # arte con la proporción más parecida, penalizando repeticiones
-        nombre = min(lista, key=lambda n: abs(math.log(prop / (artes[n].shape[1] / artes[n].shape[0]))) + 0.6 * usos[n])
-        usos[nombre] += 1
-        compuesto = compuesto | cv2.dilate(real, np.ones((9, 9), np.uint8))
-        img = pegar(img, ajustar(artes[nombre], ancho, alto), quad, real)
-        reporte['cajas'].append({'arte': nombre, 'area': area, 'proporcion': round(float(prop), 2), 'quad': quad.round().tolist()})
-
-    for quad, real, area in regiones(magenta, area_min * 0.4):
-        ancho, alto = medidas(quad)
-        if ancho / max(alto, 1) < 1.8:  # las placas del logo son horizontales; lo demás no se toca
-            reporte.setdefault('ignorados', []).append(area)
-            continue
-        compuesto = compuesto | cv2.dilate(real, np.ones((9, 9), np.uint8))
-        img = pegar(img, placa_logo(logo, ancho, alto, color_anillo(img, real)), quad, real)
-        reporte['logos'].append({'area': area, 'proporcion': round(float(ancho / max(alto, 1)), 2), 'quad': quad.round().tolist()})
-
-    # limpieza de bordes de croma que hayan quedado
+    cajas = regiones(verde, H * W * 0.0015)
+    placas = [p for p in regiones(magenta, H * W * 0.0006) if np.linalg.norm(p[0][1] - p[0][0]) > 1.6 * np.linalg.norm(p[0][3] - p[0][0])]
+    f, medida = estimar_focal((W, H), [q for q, _, _ in cajas], [q for q, _, _ in placas])
+    rep = {'imagen': os.path.basename(entrada), 'focal_px': round(f), 'focal_medida': medida, 'cajas': [], 'logos': []}
+    if len(lista) != len(cajas):
+        raise SystemExit(f'{entrada}: {len(cajas)} cajas de luz y {len(lista)} artes')
+    todo = np.zeros((H, W), np.uint8)
+    base = os.path.splitext(os.path.basename(salida))[0]
+    for i, ((quad, real, zona), nombre) in enumerate(zip(cajas, lista)):
+        R = proporcion_real(quad, W, H, f)
+        alto_px = int(np.clip(max(np.linalg.norm(quad[3] - quad[0]), np.linalg.norm(quad[2] - quad[1])) * 1.15, 300, 1400))
+        arte = cv2.cvtColor(artes_a_la_talla.generar(nombre, R, alto_px), cv2.COLOR_RGB2BGR)
+        if dir_artes:
+            cv2.imwrite(os.path.join(dir_artes, f'{base}-{i}-{nombre}.jpg'), arte, [cv2.IMWRITE_JPEG_QUALITY, 90])
+        img = pegar(img, arte, quad, real, sombreado_tela(img, real))
+        todo |= zona
+        rep['cajas'].append({'arte': nombre, 'proporcion': round(R, 3), 'px': list(arte.shape[1::-1]), 'quad': quad.round(1).tolist()})
+    for quad, real, zona in placas:
+        R = proporcion_real(quad, W, H, f)
+        alto = max(np.linalg.norm(quad[3] - quad[0]), np.linalg.norm(quad[2] - quad[1])) * 1.5
+        img = pegar(img, placa_logo(logo, alto * R, alto, color_anillo(img, real)), quad, real)
+        todo |= zona
+        rep['logos'].append({'proporcion': round(R, 3), 'quad': quad.round(1).tolist()})
+    # bordes de croma que hayan quedado alrededor de lo compuesto
     v2, m2 = mascaras(img)
-    resto = cv2.dilate(v2 | m2, np.ones((3, 3), np.uint8)) & compuesto  # solo bordes de lo compuesto
-    reporte['pixeles_croma_restantes'] = int(resto.sum() / 255)
+    resto = cv2.dilate(v2 | m2, np.ones((3, 3), np.uint8)) & cv2.dilate(todo, np.ones((9, 9), np.uint8))
+    rep['pixeles_croma_restantes'] = int((resto > 0).sum())
     if resto.any():
         img = cv2.inpaint(img, resto, 4, cv2.INPAINT_TELEA)
-    reporte['sift_logo_inliers'] = verificar_logo(img, logo) if reporte['logos'] else None
-    cv2.imwrite(salida, img, [cv2.IMWRITE_JPEG_QUALITY, 90])
-    print(json.dumps(reporte, ensure_ascii=False))
+    if piso:
+        img, rep['pixeles_reflejo_verde'] = quitar_reflejo_verde(img, cajas)
+    cv2.imwrite(salida, img, [cv2.IMWRITE_JPEG_QUALITY, 92])
+    print(json.dumps(rep, ensure_ascii=False))
 
 
 if __name__ == '__main__':
