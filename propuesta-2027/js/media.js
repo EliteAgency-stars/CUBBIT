@@ -28,9 +28,11 @@ export const RENDERS = {
   despiece: v3('8f5fde88-8aa5-4864-9714-99bc96f77767', 'Despiece de la mesa de experiencia con sus ocho capas'),
 };
 
-// Modelos 3D. La mesa sale directo del SketchUp de FARUK AGENCIA (geometría exacta, tools/skp_a_glb.py,
+// Modelos 3D. La mesa y el mueble (solo y en composición de dos) salen directo de los SketchUp de FARUK AGENCIA (geometría exacta, tools/skp_a_glb.py,
 // comprimida con meshopt); el mueble Jr & Teens es el modelo Higgsfield (Tripo H3.1, imagen → 3D).
 export const MODELOS_IA = {
   mesa: 'propuesta-2027/modelos/mesa-cubitt-2027.glb',
+  mueble: 'propuesta-2027/modelos/mueble-cubitt-2027.glb',
+  mueble2: 'propuesta-2027/modelos/mueble-cubitt-2027-x2.glb',
   kids: 'https://d8j0ntlcm91z4.cloudfront.net/user_3H8VPOIlKTSsf171GizUHRYwT0M/hf_20261001_073624_5615a9f7-658f-469c-987c-a8bb33867665.glb',
 };

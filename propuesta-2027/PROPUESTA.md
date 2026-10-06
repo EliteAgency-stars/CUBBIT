@@ -27,13 +27,20 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - Modelo 3D exacto: [`modelos/mesa-cubitt-2027.glb`](modelos/mesa-cubitt-2027.glb) (`tools/skp_a_glb.py`, 1,1 MB con meshopt).
 - Los renders de ambiente conservan el volumen de la versión anterior; la escena 3D, el plano y el GLB usan estas medidas.
 
-### 02 · Mueble de exhibición — 120 × 140 × 40 cm
-- Gabinete Capri con logo platino 3000K, mesón Duna a 88 cm con LED 3000K.
-- Caja de luz trasera 116 × 48 cm (arte **Viva Pro 2**) y caja de luz lateral **40 × 76 cm** (arte **Aura Pro 2**, formato existente).
-- Jerarquía: héroe en repisa acrílica → familia en el mesón → accesorios en los extremos → precio en riel inox.
+### 02 · Mueble de exhibición — 120 × 149 × 40 cm (SketchUp «segundo mueble mesa cubitt»)
+- Reemplaza al mueble de 120 × 140 × 40 cm con caja de luz lateral. Medidas leídas de [`artes-cubitt/originales/segundo mueble mesa cubitt.skp`](artes-cubitt/originales/).
+- Mesón con el mismo ADN de la mesa: base recta Capri 120 × 40 × 70,2 cm sobre zócalo inox de 5 cm, línea de sombra rehundida 3 cm con LED 3000K y tope Duna de 18 mm con esquinas curvas a 78,8 cm.
+- Frente: tres puertas push con gola rehundida bajo el tope. Atrás, dos puertas.
+- Elevador Duna de 112,4 × 14 × 5 cm al fondo con el audio (Power ANC, Power Buds 2, Power Pro 2, Power Plus 2, Power Go 2, Power Mini).
+- Caja de luz trasera de **120 × 64,8 cm** (tela 118,1 × 62,8 cm), de 83,8 a 148,6 cm de alto, sobre cinco postes de aluminio. Arte **Nueva Era** a la talla.
+- Relojes: ocho checkpoints al frente del mesón, cada uno con ficha acrílica de precio.
+- Logo platino oficial (31 cm, centrado a 40,6 cm) con halo 3000K en los laterales libres. En el .skp los dos logos quedaron a alturas y tamaños algo distintos; se unificaron.
+- Modelo 3D exacto: [`modelos/mueble-cubitt-2027.glb`](modelos/mueble-cubitt-2027.glb) (1,4 MB).
 
-### Composición modular — 3 × 120 cm
-- Artes Terra, Viva Pro 2 y Nueva Era; laterales Aura Pro 2. Un solo logo, en el módulo central.
+### Composición modular — 2 × 120 cm
+- Dos módulos iguales lado a lado: frente de 240 cm con topes, elevadores y cajas de luz alineados.
+- Cada módulo lleva su campaña (en la propuesta, Nueva Era y Viva Pro 2). El logo va solo en los dos laterales exteriores.
+- Modelo 3D: [`modelos/mueble-cubitt-2027-x2.glb`](modelos/mueble-cubitt-2027-x2.glb) (1,6 MB; los dos módulos comparten geometría).
 
 ### 03 · Display de sobremesa — 50 × 30 × 25 cm
 - Basado en el display con checkpoints actual: base Capri con LED 3000K, plataforma Duna, caja de luz con banda de aluminio y logo platino, tres checkpoints y riel inox.
@@ -49,9 +56,9 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 | Pieza | Valor |
 |---|---:|
 | Mesa de experiencia (valor de la versión de 150 cm · se recotiza con la nueva de 80 × 79 × 50 cm) | $ 8.500.000 |
-| Mueble de exhibición | $ 12.400.000 |
+| Mueble de exhibición (valor de la versión anterior · se recotiza con el módulo de 120 × 149 × 40 cm) | $ 12.400.000 |
 | Display de sobremesa | $ 1.200.000 |
-| Composición modular | $ 25.000.000 |
+| Composición modular (valor de la versión de tres módulos · se recotiza con dos módulos iguales) | $ 25.000.000 |
 | Mueble Cubitt Jr & Teens (estimado, por validar) | ≈ $ 9.000.000 |
 
 ## Correcciones aplicadas
@@ -70,13 +77,14 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - [x] Artes **a la talla** de cada caja de luz (`tools/artes_a_la_talla.py`): cada arte se rediagrama a la proporción real de su caja, sin estirar piezas ni rellenar con copias difuminadas. Renders v4 recompuestos con `tools/componer_renders.py` (cajas separadas, proporción medida en perspectiva).
 - [x] Halo de contorno del logo en luz cálida **3000K**.
 - [x] Mesa de experiencia nueva según el SketchUp (base recta, tope Duna con esquinas curvas), con plano cenital y modelo 3D exacto.
+- [x] Mueble de exhibición nuevo según el SketchUp: módulo de 120 cm, solo o en composición de dos, con caja de luz trasera, plano cenital y modelos 3D exactos.
 
 ## Recursos
 
 - Artes y fotos de producto originales: [`artes-cubitt/originales/`](artes-cubitt/originales/) (ver [`artes-cubitt/INVENTARIO.md`](artes-cubitt/INVENTARIO.md)); versiones web en `artes-cubitt/web/` y recortes en `artes-cubitt/productos/` (generados con `tools/preparar_artes.py`).
 - Renders v3/v4 Higgsfield (GPT Image 2.5 con las hojas de producto de [`referencias/`](referencias/) + composición con `tools/componer_renders.py` y artes de `tools/artes_a_la_talla.py`): enlaces en [`js/media.js`](js/media.js). Los renders v2 que quedan en [`renders/`](renders/) son el lado vendedor y el detalle de materiales.
 - Artes a la talla de las cajas de la escena 3D: [`artes-cubitt/a-la-talla/`](artes-cubitt/a-la-talla/).
-- Modelo 3D de la mesa de experiencia convertido directo del SketchUp (`tools/skp_lector.py` + `tools/skp_a_glb.py`): [`modelos/mesa-cubitt-2027.glb`](modelos/mesa-cubitt-2027.glb).
+- Modelos 3D de la mesa y del mueble (solo y × 2) convertidos directo de los SketchUp (`tools/skp_lector.py` + `tools/skp_a_glb.py`): [`modelos/`](modelos/).
 - Modelo 3D Higgsfield del mueble Cubitt Jr & Teens (Tripo H3.1, 10,8 MB): enlace en [`js/media.js`](js/media.js).
 - Texturas Capri y Duna (Pelíkano): [`assets/materiales/`](assets/materiales/). Firma FARUK AGENCIA: [`assets/firma/`](assets/firma/) (`tools/preparar_firma.py`).
 - Los archivos SketchUp (`.skp`, formato 2021+) se leen sin SketchUp con `tools/skp_lector.py` y se convierten a GLB con `tools/skp_a_glb.py`.
