@@ -25,7 +25,6 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - Distribución (plano cenital): **bafles** atrás sobre elevador Duna 72,7 × 14 × 5 cm con riel inox (Power Pro 2, Power Plus 2, Power Go 2, Power Mini) · **audífonos** a los costados (Power Buds 2 a la izquierda, Power ANC en soporte a la derecha) · **relojes** al frente en 4 checkpoints con ficha acrílica (Viva Pro 2, Viva 2, Aura Pro 2, Terra).
 - Lado vendedor: dos puertas push sin manijas.
 - Modelo 3D exacto: [`modelos/mesa-cubitt-2027.glb`](modelos/mesa-cubitt-2027.glb) (`tools/skp_a_glb.py`, 1,1 MB con meshopt).
-- Los renders de ambiente conservan el volumen de la versión anterior; la escena 3D, el plano y el GLB usan estas medidas.
 
 ### 02 · Mueble de exhibición — 120 × 149 × 40 cm (SketchUp «segundo mueble mesa cubitt»)
 - Reemplaza al mueble de 120 × 140 × 40 cm con caja de luz lateral. Medidas leídas de [`artes-cubitt/originales/segundo mueble mesa cubitt.skp`](artes-cubitt/originales/).
@@ -43,7 +42,8 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - Modelo 3D: [`modelos/mueble-cubitt-2027-x2.glb`](modelos/mueble-cubitt-2027-x2.glb) (1,6 MB; los dos módulos comparten geometría).
 
 ### 03 · Display de sobremesa — 50 × 30 × 25 cm
-- Basado en el display con checkpoints actual: base Capri con LED 3000K, plataforma Duna, caja de luz con banda de aluminio y logo platino, tres checkpoints y riel inox.
+- Basado en el display con checkpoints actual: base Capri con LED 3000K, plataforma Duna, caja de luz sin banda superior (el arte queda limpio), tres checkpoints y riel inox.
+- El logo platino (12 cm, halo 3000K) pasa al frente de la base Capri, bajo la línea LED.
 
 ### 04 · Mueble Cubitt Jr & Teens — 120 × 125 × 55 cm (nuevo)
 - **Mesón infantil a 60 cm** (alcance de niños de 4 a 10 años) y **mesón de padres a 90 cm**.
@@ -78,11 +78,14 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - [x] Halo de contorno del logo en luz cálida **3000K**.
 - [x] Mesa de experiencia nueva según el SketchUp (base recta, tope Duna con esquinas curvas), con plano cenital y modelo 3D exacto.
 - [x] Mueble de exhibición nuevo según el SketchUp: módulo de 120 cm, solo o en composición de dos, con caja de luz trasera, plano cenital y modelos 3D exactos.
+- [x] Renders v5 hechos con Blender Cycles sobre los mismos modelos exactos de los SketchUp (`tools/render_blender.py`): mesa, mueble, composición, sobremesa, logo, materiales y despiece coinciden con la escena 3D y los planos. Jr & Teens conserva sus renders v4 porque ese mueble no cambió.
+- [x] Display de sobremesa sin banda superior; el logo platino pasa al frente de la base.
 
 ## Recursos
 
 - Artes y fotos de producto originales: [`artes-cubitt/originales/`](artes-cubitt/originales/) (ver [`artes-cubitt/INVENTARIO.md`](artes-cubitt/INVENTARIO.md)); versiones web en `artes-cubitt/web/` y recortes en `artes-cubitt/productos/` (generados con `tools/preparar_artes.py`).
-- Renders v3/v4 Higgsfield (GPT Image 2.5 con las hojas de producto de [`referencias/`](referencias/) + composición con `tools/componer_renders.py` y artes de `tools/artes_a_la_talla.py`): enlaces en [`js/media.js`](js/media.js). Los renders v2 que quedan en [`renders/`](renders/) son el lado vendedor y el detalle de materiales.
+- Renders v5 (Blender Cycles sobre los GLB exactos, `tools/render_blender.py`): [`renders/`](renders/) — familia, mesa, touch, lado vendedor, mueble, composición, sobremesa, logo, materiales y despiece.
+- Renders v4 Higgsfield del mueble Jr & Teens (GPT Image 2.5 con las hojas de producto de [`referencias/`](referencias/) + composición con `tools/componer_renders.py` y artes de `tools/artes_a_la_talla.py`): enlaces en [`js/media.js`](js/media.js).
 - Artes a la talla de las cajas de la escena 3D: [`artes-cubitt/a-la-talla/`](artes-cubitt/a-la-talla/).
 - Modelos 3D de la mesa y del mueble (solo y × 2) convertidos directo de los SketchUp (`tools/skp_lector.py` + `tools/skp_a_glb.py`): [`modelos/`](modelos/).
 - Modelo 3D Higgsfield del mueble Cubitt Jr & Teens (Tripo H3.1, 10,8 MB): enlace en [`js/media.js`](js/media.js).

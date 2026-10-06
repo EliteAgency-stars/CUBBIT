@@ -11,6 +11,7 @@ Uso: python tools/skp_a_glb.py archivo.skp salida.glb [mesa|mueble|mueble2]
      mesa    -> mesa de experiencia (primer mueble mesa cubitt.skp)
      mueble  -> mueble de exhibición de 120 cm (segundo mueble mesa cubitt.skp)
      mueble2 -> dos muebles iguales lado a lado (240 cm): mallas compartidas, logo solo en los laterales exteriores
+     --sin-productos  deja fuera los productos genéricos del .skp (para los renders, que usan los productos reales de Cubitt)
 Requiere numpy, Pillow, mapbox_earcut, pygltflib (y lo que pide tools/artes_a_la_talla.py).
 """
 import io
@@ -179,8 +180,10 @@ def plano_logo(c, centro, normal, ancho, mat_letras, mat_halo, nodos=((0, 0, 0),
 
 def main():
     global ORIGEN
-    skp, salida = sys.argv[1], sys.argv[2]
-    modo = sys.argv[3] if len(sys.argv) > 3 else 'mesa'
+    sin_productos = '--sin-productos' in sys.argv
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    skp, salida = args[0], args[1]
+    modo = args[2] if len(args) > 2 else 'mesa'
     pieza = PIEZAS['mueble' if modo == 'mueble2' else modo]
     ORIGEN = pieza['origen']
     # composición: dos módulos de 1,20 m lado a lado (el de la izquierda en -0,60 m, el de la derecha en +0,60 m)
@@ -263,6 +266,8 @@ def main():
             clave, n = 'arte', -n  # el arte está en la cara posterior (mira al cliente)
         else:
             clave = mat_de(nombres.get(mid), ruta)
+        if clave is None and sin_productos:
+            continue
         if clave is None:  # productos y piezas sin material del proyecto: color del .skp
             info = m.mats.get(mid)
             rgb = info['color'] if info else (205, 205, 205)
