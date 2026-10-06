@@ -11,14 +11,14 @@ from PIL import Image
 
 HF_V3 = "https://d2ol7oe51mr4n9.cloudfront.net/user_3H8VPOIlKTSsf171GizUHRYwT0M/"
 RENDERS_V3 = {
-    "familia": "3defafd6-576a-4791-895c-5b6af8d4e42c.jpg",
-    "mesa": "23d31f91-bd13-4bef-9cc2-6fd8c9facc10.jpg",
-    "touch": "40b70006-be24-421a-ade4-abb3e047c505.jpg",
-    "mueble": "c0dfb782-7239-4a4a-a0ba-925861c58a08.jpg",
-    "modular": "2beff505-2ba8-4523-a1ab-4a65664c4732.jpg",
+    "familia": "77f04329-ae83-4f91-b630-f3955a263dff.jpg",
+    "mesa": "4e60c9af-f0eb-4195-a346-6228e579bac9.jpg",
+    "touch": "1341c4da-7eab-4232-bd2e-5cb4e80e6d71.jpg",
+    "mueble": "12ef1acb-8fec-4b21-81a6-ea887406d995.jpg",
+    "modular": "3dd36272-d654-4c46-926c-5ec67b65e268.jpg",
     "sobremesa": "cca2e26e-e725-4676-bde9-7defe1502e90.jpg",
-    "kids": "400b13cd-2ba3-4703-898d-602e34047cb8.jpg",
-    "kids-producto": "8ffd62fc-aef8-421c-98d8-9c4e7a375130.jpg",
+    "kids": "e51149cf-4d2f-48de-8b69-57f931aa6aad.jpg",
+    "kids-producto": "fbbe9958-05cf-4165-970d-5521c527c2b7.jpg",
     "logo": "6a793f50-d5a7-41a4-8e7f-7273f4b895b8.jpg",
     "despiece": "8f5fde88-8aa5-4864-9714-99bc96f77767.jpg",
 }

@@ -4,27 +4,28 @@ const P = (n) => `propuesta-2027/artes-cubitt/productos/${n}.png`;
 
 export const PLANOS = {
   mesa: {
+    // Medidas y posiciones tomadas del SketchUp «primer mueble mesa cubitt» (tope Duna con esquinas R40).
     titulo: 'Mesa de experiencia',
-    ancho: 1500, fondo: 700, radio: 30,
+    ancho: 800, fondo: 500, radio: 40,
     zonas: [
-      { x: -390, y: -310, w: 1080, h: 220, tipo: 'duna', etiqueta: 'Elevador en madera Duna · h 10 cm · bafles' },
-      { x: -740, y: -310, w: 300, h: 620, tipo: 'zona', etiqueta: 'Audífonos' },
-      { x: -440, y: 110, w: 1150, h: 190, tipo: 'zona', etiqueta: 'Relojes · checkpoints' },
+      { x: -358, y: -209, w: 727, h: 140, tipo: 'duna', etiqueta: 'Elevador en madera Duna · 72,7 × 14 × 5 cm · bafles' },
+      { x: -372, y: -40, w: 150, h: 125, tipo: 'zona', etiqueta: 'Audífonos in-ear + ficha acrílica' },
+      { x: 222, y: -50, w: 150, h: 135, tipo: 'zona', etiqueta: 'Audífonos de diadema en soporte + ficha acrílica' },
+      { x: -272, y: 95, w: 520, h: 145, tipo: 'zona', etiqueta: 'Relojes · 4 checkpoints con ficha acrílica al frente' },
     ],
     productos: [
-      { n: 'power-go-2', x: -270, y: -200, w: 110, nombre: 'Power Go 2' },
-      { n: 'power-pro-2', x: 20, y: -200, w: 300, nombre: 'Power Pro 2' },
-      { n: 'power-plus-2', x: 300, y: -200, w: 80, nombre: 'Power Plus 2' },
-      { n: 'power-mini', x: 520, y: -200, w: 100, nombre: 'Power Mini' },
-      { n: 'power-anc-negro', x: -600, y: -170, w: 180, nombre: 'Power ANC' },
-      { n: 'power-anc-crema', x: -600, y: 40, w: 170, nombre: 'Power ANC crema' },
-      { n: 'power-buds-2', x: -600, y: 240, w: 90, nombre: 'Power Buds 2' },
-      ...['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde'].map((n, i) => ({
-        n, x: -360 + i * 190, y: 200, w: 75,
-        nombre: ['Viva Pro 2', 'Viva 2', 'Viva Lite', 'Aura 2', 'Aura Pro 2', 'Terra'][i],
+      { n: 'power-pro-2', x: -197, y: -128, w: 230, nombre: 'Power Pro 2' },
+      { n: 'power-plus-2', x: 35, y: -149, w: 90, nombre: 'Power Plus 2' },
+      { n: 'power-go-2', x: 175, y: -149, w: 75, nombre: 'Power Go 2' },
+      { n: 'power-mini', x: 287, y: -149, w: 70, nombre: 'Power Mini' },
+      { n: 'power-buds-2', x: -277, y: 34, w: 80, nombre: 'Power Buds 2' },
+      { n: 'power-anc-negro', x: 277, y: 52, w: 150, nombre: 'Power ANC' },
+      ...['viva-pro-2', 'viva-2-rosado', 'aura-pro-2', 'terra-verde'].map((n, i) => ({
+        n, x: [-217, -87, 53, 204][i], y: 145, w: 70,
+        nombre: ['Viva Pro 2', 'Viva 2', 'Aura Pro 2', 'Terra'][i],
       })),
     ],
-    frente: 'Frente: caja de luz «Nueva Era» · laterales: logo platino',
+    frente: 'Frente: caja de luz 66 × 56 cm (Viva Pro 2) · laterales: logo platino 3000K · atrás: dos puertas push',
   },
   mueble: {
     titulo: 'Mueble de exhibición',

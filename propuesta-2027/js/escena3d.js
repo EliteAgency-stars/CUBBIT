@@ -95,11 +95,13 @@ function materialDuna(tex) {
 }
 
 // Caja de luz: marco de aluminio con esquinas redondas + tela backlight con el arte (5000K)
-function cajaDeLuz(p, w, h, arte, x, y, z, rotY = 0, despiece) {
-  const borde = 0.022, r = Math.min(0.045, h / 4);
+// Las artes vienen a la talla de cada caja (artes-cubitt/a-la-talla/, tools/artes_a_la_talla.py): no se recortan ni se estiran.
+function cajaDeLuz(p, w, h, arte, x, y, z, rotY = 0, despiece, { borde = 0.022, fondo = 0.03, radio = 0.045 } = {}) {
+  const r = Math.min(radio, h / 4);
   const anillo = rectRedondeado(w, h, r);
   anillo.holes.push(rectRedondeado(w - borde * 2, h - borde * 2, r - borde * 0.6));
-  const geoMarco = new THREE.ExtrudeGeometry(anillo, { depth: 0.03, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2, curveSegments: 10 });
+  const bisel = Math.min(0.004, borde / 3);
+  const geoMarco = new THREE.ExtrudeGeometry(anillo, { depth: fondo, bevelEnabled: true, bevelThickness: bisel, bevelSize: bisel, bevelSegments: 2, curveSegments: 10 });
   const alu = p.mat({ color: COLOR.aluminio, metalness: 0.9, roughness: 0.32 });
   const marco = new THREE.Mesh(geoMarco, alu);
   const wi = w - borde * 2, hi = h - borde * 2;
@@ -113,7 +115,7 @@ function cajaDeLuz(p, w, h, arte, x, y, z, rotY = 0, despiece) {
   t.needsUpdate = true;
   const tela = p.mat({ color: 0x5a5a5a, map: t, emissive: COLOR.luz5000, emissiveMap: t, emissiveIntensity: 1, roughness: 0.9 }, 'caja');
   const malla = new THREE.Mesh(geoTela, tela);
-  malla.position.z = 0.022;
+  malla.position.z = fondo * 0.73;
   const g = new THREE.Group();
   g.add(marco, malla);
   g.position.set(x, y, z);
@@ -175,49 +177,52 @@ function zocalo(p, w, d, despiece) {
   return cuerpo(p, w, 0.06, d, inox, 0, 0, 0, despiece, 0.02);
 }
 
-// ---------- 01 · Mesa de experiencia 150 × 90 × 70 ----------
+// ---------- 01 · Mesa de experiencia 80 × 79 × 50 (SketchUp «primer mueble mesa cubitt») ----------
+// Medidas tomadas del archivo: base recta Capri 80 × 50 × 70,2 cm sobre zócalo inox de 5 cm, línea de sombra
+// rehundida 3 cm con LED 3000K, tope Duna de 18 mm con esquinas R40, caja de luz frontal 66 × 56 cm a ras,
+// logo platino en ambos laterales, elevador Duna 72,7 × 14 × 5 cm al fondo y dos puertas push atrás.
 function crearMesa(tx) {
   const p = new Pieza('mesa');
   const capri = p.mat({ color: COLOR.capri, roughness: 0.8 });
   const duna = p.mat(materialDuna(tx.duna));
   const sombra = p.mat({ color: 0x8f8579, roughness: 0.9 });
+  const inox = p.mat({ color: COLOR.inox, metalness: 1, roughness: 0.22 });
+  const acrilico = p.mat({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.05 });
 
-  zocalo(p, 1.42, 0.62, [0, -0.3, 0]);
-  cuerpo(p, 1.5, 0.79, 0.7, capri, 0, 0.06, 0);
-  p.caja(1.46, 0.015, 0.66, sombra, 0, 0.8575, 0, 0, [0, 0.3, 0]);
-  lineaLed(p, 1.44, 0, 0.853, 0.334, [0, 0.3, 0]);
-  lineaLed(p, 1.44, 0, 0.853, -0.334, [0, 0.3, 0]);
-  cuerpo(p, 1.52, 0.03, 0.72, duna, 0, 0.865, 0, [0, 0.5, 0]);
-  // Frente: caja de luz con el arte "Nueva Era"
-  cajaDeLuz(p, 1.38, 0.62, tx.arteNuevaEra, 0, 0.46, 0.351, 0, [0, 0, 0.35]);
-  // Laterales Capri con logo platino 3000K
-  logoPlatino(p, 0.5, 0.752, 0.5, 0, Math.PI / 2, [0.25, 0, 0]);
-  logoPlatino(p, 0.5, -0.752, 0.5, 0, -Math.PI / 2, [-0.25, 0, 0]);
-  // Elevador en madera Duna (reemplaza el acrílico) para los bafles
-  const yTop = 0.895;
-  cuerpo(p, 1.08, 0.1, 0.22, duna, 0.15, yTop, -0.2, [0, 0.65, 0], 0.015);
-  const yRiser = yTop + 0.1;
-  producto(p, 'power-go-2', 0.12, -0.27, yRiser, -0.2, { base: null, despiece: [0, 0.85, 0] });
-  producto(p, 'power-pro-2', 0.14, 0.02, yRiser, -0.2, { base: null, despiece: [0, 0.85, 0] });
-  producto(p, 'power-plus-2', 0.2, 0.3, yRiser, -0.2, { base: null, despiece: [0, 0.85, 0] });
-  producto(p, 'power-mini', 0.12, 0.52, yRiser, -0.2, { base: null, despiece: [0, 0.85, 0] });
-  // Audífonos en el extremo izquierdo
-  producto(p, 'power-anc-negro', 0.2, -0.6, yTop, -0.17, { base: null, despiece: [0, 0.75, 0] });
-  producto(p, 'power-anc-crema', 0.18, -0.6, yTop, 0.04, { base: null, despiece: [0, 0.75, 0] });
-  producto(p, 'power-buds-2', 0.08, -0.6, yTop, 0.24, { base: null, despiece: [0, 0.75, 0] });
-  // Relojes al frente sobre checkpoints
-  ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde'].forEach((n, i) =>
-    producto(p, n, 0.085, -0.36 + i * 0.19, yTop, 0.2, { despiece: [0, 0.75, 0] }));
-  // Pasacables inox
-  const inox = p.mat({ color: COLOR.inox, metalness: 1, roughness: 0.2 });
-  [-0.45, 0.45].forEach((x) => {
-    const g = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.002, 24), inox);
-    g.position.set(x, yTop + 0.001, 0.05);
-    p.add(g, [0, 0.5, 0]);
+  cuerpo(p, 0.8, 0.05, 0.5, inox, 0, 0, 0, [0, -0.25, 0], 0.04);
+  cuerpo(p, 0.8, 0.702, 0.5, capri, 0, 0.05, 0, undefined, 0.002);
+  cuerpo(p, 0.74, 0.018, 0.44, sombra, 0, 0.752, 0, [0, 0.25, 0], 0.01);
+  lineaLed(p, 0.72, 0, 0.765, 0.222, [0, 0.25, 0]);
+  lineaLed(p, 0.72, 0, 0.765, -0.222, [0, 0.25, 0]);
+  cuerpo(p, 0.8, 0.018, 0.5, duna, 0, 0.77, 0, [0, 0.4, 0], 0.04);
+  // Frente: caja de luz a ras con el arte Viva Pro 2 a la talla (65,9 × 56,1 cm de tela)
+  cajaDeLuz(p, 0.678, 0.58, tx.arteMesa, 0, 0.401, 0.247, 0, [0, 0, 0.3], { borde: 0.0093, fondo: 0.006, radio: 0.04 });
+  // Laterales Capri con logo platino 3000K (36,5 cm, centrado a 40 cm de alto)
+  logoPlatino(p, 0.365, 0.402, 0.4, -0.0095, Math.PI / 2, [0.22, 0, 0]);
+  logoPlatino(p, 0.365, -0.402, 0.4, -0.0095, -Math.PI / 2, [-0.22, 0, 0]);
+  // Elevador Duna al fondo con riel inox atrás
+  const yTop = 0.788;
+  p.caja(0.727, 0.05, 0.14, duna, 0.0055, yTop + 0.025, -0.139, 0.003, [0, 0.55, 0]);
+  p.caja(0.689, 0.025, 0.003, inox, 0.0045, 0.8145, -0.2105, 0.001, [0, 0.55, 0]);
+  const yRiser = yTop + 0.05;
+  producto(p, 'power-pro-2', 0.13, -0.197, yRiser, -0.128, { base: null, despiece: [0, 0.72, 0] });
+  producto(p, 'power-plus-2', 0.2, 0.0345, yRiser, -0.149, { base: null, despiece: [0, 0.72, 0] });
+  producto(p, 'power-go-2', 0.09, 0.175, yRiser, -0.149, { base: null, despiece: [0, 0.72, 0] });
+  producto(p, 'power-mini', 0.085, 0.2865, yRiser, -0.149, { base: null, despiece: [0, 0.72, 0] });
+  // Audífonos: in-ear a la izquierda y de diadema a la derecha, cada uno con su ficha acrílica
+  producto(p, 'power-buds-2', 0.07, -0.277, yTop, 0.034, { base: null, despiece: [0, 0.6, 0] });
+  producto(p, 'power-anc-negro', 0.2, 0.277, yTop, 0.052, { base: null, despiece: [0, 0.6, 0] });
+  // Relojes al frente: cuatro checkpoints con base acrílica delante
+  ['viva-pro-2', 'viva-2-rosado', 'aura-pro-2', 'terra-verde'].forEach((n, i) => {
+    const x = [-0.2165, -0.0865, 0.0525, 0.2035][i];
+    producto(p, n, 0.075, x, yTop, 0.1445, { despiece: [0, 0.6, 0] });
+    p.caja(0.08, 0.004, 0.05, acrilico, x, yTop + 0.002, 0.21, 0.001, [0, 0.6, 0]);
   });
-  // Lado vendedor: puertas push y cajón
-  [-0.375, 0, 0.375].forEach((x) => p.caja(0.003, 0.56, 0.002, sombra, x, 0.4, -0.351, 0, [0, 0, -0.15]));
-  p.caja(1.44, 0.003, 0.002, sombra, 0, 0.69, -0.351, 0, [0, 0, -0.15]);
+  [[-0.339, 0.034], [0.337, 0.047]].forEach(([x, z]) => p.caja(0.05, 0.004, 0.08, acrilico, x, yTop + 0.002, z, 0.001, [0, 0.6, 0]));
+  // Lado vendedor: dos puertas push (sin manijas)
+  p.caja(0.003, 0.65, 0.002, sombra, 0, 0.401, -0.251, 0, [0, 0, -0.12]);
+  p.caja(0.748, 0.003, 0.002, sombra, 0, 0.076, -0.251, 0, [0, 0, -0.12]);
+  p.caja(0.748, 0.003, 0.002, sombra, 0, 0.726, -0.251, 0, [0, 0, -0.12]);
   return p;
 }
 
@@ -258,7 +263,7 @@ function crearSobremesa(tx) {
   cuerpo(p, 0.5, 0.035, 0.25, capri, 0, 0, 0, undefined, 0.02);
   lineaLed(p, 0.46, 0, 0.037, 0.118);
   cuerpo(p, 0.5, 0.045, 0.25, duna, 0, 0.037, 0, [0, 0.06, 0], 0.02);
-  cajaDeLuz(p, 0.48, 0.2, tx.arteVivaPro, 0, 0.19, -0.105, 0, [0, 0.14, -0.06]);
+  cajaDeLuz(p, 0.48, 0.2, tx.arteSobremesa, 0, 0.19, -0.105, 0, [0, 0.14, -0.06]);
   const banda = p.mat({ color: COLOR.aluminio, metalness: 0.85, roughness: 0.35 });
   p.caja(0.48, 0.065, 0.03, banda, 0, 0.322, -0.11, 0.012, [0, 0.2, -0.06]);
   logoPlatino(p, 0.17, 0, 0.322, -0.094, 0, [0, 0.2, -0.04]);
@@ -307,17 +312,17 @@ function crearKids(tx) {
 // ---------- Vistas ligadas a las secciones ----------
 const VISTAS = {
   familia:    { cam: [3.4, 2.4, 4.4], obj: [-0.3, 0.75, -0.8], foco: null },
-  mesa:       { cam: [1.9, 1.45, 2.3], obj: [0, 0.75, 0], foco: ['mesa'] },
-  luz:        { cam: [0.0, 0.8, 2.15], obj: [0, 0.55, 0], foco: ['mesa'], pulso: true },
-  planta:     { cam: [0.0, 2.9, 0.02], obj: [0, 0.9, 0], foco: ['mesa'] },
-  vendedor:   { cam: [-1.35, 1.45, -1.2], obj: [0, 0.5, -0.1], foco: ['mesa'] },
+  mesa:       { cam: [1.2, 1.2, 1.5], obj: [0, 0.6, 0], foco: ['mesa'] },
+  luz:        { cam: [0.0, 0.62, 1.45], obj: [0, 0.42, 0], foco: ['mesa'], pulso: true },
+  planta:     { cam: [0.0, 2.05, 0.02], obj: [0, 0.8, 0], foco: ['mesa'] },
+  vendedor:   { cam: [-0.95, 1.15, -1.2], obj: [0, 0.45, -0.1], foco: ['mesa'] },
   mueble:     { cam: [0.55, 1.45, 0.95], obj: [-0.61, 1.0, -1.75], foco: ['mueble-a'] },
   modular:    { cam: [0.0, 1.55, 2.0], obj: [0, 1.0, -1.75], foco: ['mueble-a', 'mueble-b'] },
   sobremesa:  { cam: [2.95, 1.32, -0.15], obj: [2.35, 1.0, -0.85], foco: ['sobremesa'] },
   kids:       { cam: [-1.05, 1.25, 1.35], obj: [-2.3, 0.7, -0.55], foco: ['kids'] },
-  logo:       { cam: [1.85, 0.7, 0.45], obj: [0.75, 0.5, 0], foco: ['mesa'] },
-  materiales: { cam: [1.1, 1.05, 0.8], obj: [0.72, 0.8, 0.3], foco: ['mesa'] },
-  despiece:   { cam: [2.5, 1.85, 2.7], obj: [0, 0.85, 0], foco: ['mesa'], despiece: true },
+  logo:       { cam: [1.25, 0.5, 0.3], obj: [0.4, 0.4, 0], foco: ['mesa'] },
+  materiales: { cam: [0.85, 1.0, 0.75], obj: [0.38, 0.72, 0.22], foco: ['mesa'] },
+  despiece:   { cam: [1.7, 1.45, 1.9], obj: [0, 0.75, 0], foco: ['mesa'], despiece: true },
 };
 
 function cargar(url) {
@@ -399,11 +404,13 @@ export function crearEscena(contenedor, { onListo } = {}) {
   };
 
   const ARTES = {
-    arteNuevaEra: 'artes-cubitt/web/arte-nueva-era-horizontal.jpg',
-    arteVivaPro: 'artes-cubitt/web/arte-viva-pro-2.jpg',
-    arteAuraPro: 'artes-cubitt/web/arte-aura-pro-2.jpg',
-    arteTerra: 'artes-cubitt/web/arte-terra.jpg',
-    arteJr: 'artes-cubitt/web/arte-jr-rapunzel.jpg',
+    arteMesa: 'artes-cubitt/a-la-talla/mesa-frente-viva-pro-2.jpg',
+    arteFondoViva: 'artes-cubitt/a-la-talla/mueble-fondo-viva-pro-2.jpg',
+    arteFondoNuevaEra: 'artes-cubitt/a-la-talla/mueble-fondo-nueva-era.jpg',
+    arteLateralAura: 'artes-cubitt/a-la-talla/mueble-lateral-aura-pro-2.jpg',
+    arteLateralTerra: 'artes-cubitt/a-la-talla/mueble-lateral-terra.jpg',
+    arteSobremesa: 'artes-cubitt/a-la-talla/sobremesa-viva-pro-2.jpg',
+    arteJr: 'artes-cubitt/a-la-talla/kids-rapunzel.jpg',
     duna: 'assets/materiales/duna.jpg',
     logo: 'assets/logo/logo-cubitt-platino.png',
   };
@@ -422,9 +429,9 @@ export function crearEscena(contenedor, { onListo } = {}) {
     HALO = texturaHalo(tx.logo);
 
     piezas.mesa = crearMesa(tx);
-    piezas['mueble-a'] = crearMueble(tx, 'mueble-a', { arteFondo: tx.arteVivaPro, arteLateral: tx.arteAuraPro, lado: -1, conLogo: true,
+    piezas['mueble-a'] = crearMueble(tx, 'mueble-a', { arteFondo: tx.arteFondoViva, arteLateral: tx.arteLateralAura, lado: -1, conLogo: true,
       productos: ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'power-buds-2', 'termo-burgandy'] });
-    piezas['mueble-b'] = crearMueble(tx, 'mueble-b', { arteFondo: tx.arteNuevaEra, arteLateral: tx.arteTerra, lado: 1, conLogo: false,
+    piezas['mueble-b'] = crearMueble(tx, 'mueble-b', { arteFondo: tx.arteFondoNuevaEra, arteLateral: tx.arteLateralTerra, lado: 1, conLogo: false,
       productos: ['terra-verde', 'aura-2-azul', 'aura-pro-2', 'power-anc-crema', 'coffee-mug-verde'] });
     piezas.sobremesa = crearSobremesa(tx);
     piezas.kids = crearKids(tx);
@@ -434,13 +441,13 @@ export function crearEscena(contenedor, { onListo } = {}) {
     piezas.kids.grupo.position.set(-2.3, 0, -0.55);
     piezas.kids.grupo.rotation.y = 0.55;
     Object.values(piezas).forEach((p) => scene.add(p.grupo));
-    halo(0, 0.45, 0.75);
+    halo(0, 0.4, 0.6);
     halo(-0.61, 1.15, -1.4);
     halo(0.61, 1.15, -1.4);
     halo(2.35, 1.1, -0.65, COLOR.luz5000, 0.35);
     halo(-2.1, 1.1, -0.35);
-    halo(0.95, 0.5, 0, COLOR.luz3000, 0.35);
-    halo(-0.95, 0.5, 0, COLOR.luz3000, 0.35);
+    halo(0.62, 0.4, 0, COLOR.luz3000, 0.35);
+    halo(-0.62, 0.4, 0, COLOR.luz3000, 0.35);
     onListo?.();
   });
 

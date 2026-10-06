@@ -208,7 +208,7 @@ def viva_pro_2(R, H):
     r_foto = fw / fh
     if R <= r_foto * 1.04:
         cw = fh * R
-        x0 = min(max(0, 0.5 * fw - cw / 2), fw - cw)
+        x0 = min(max(0, 0.47 * fw - cw / 2), fw - cw)  # algo a la izquierda: el lema del arte arranca al 7 %
         rec = a[:, int(x0):int(x0 + cw)]
         return cv2.resize(rec, (W, H), interpolation=cv2.INTER_AREA).clip(0, 255).astype(np.uint8)
     if R <= r_foto / (y_max - y_min):
