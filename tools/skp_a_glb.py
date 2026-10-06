@@ -1,4 +1,4 @@
-"""Convierte la mesa de experiencia de SketchUp (.skp) a GLB para la web, con la geometría exacta del archivo.
+"""Convierte los muebles de SketchUp (.skp) de FARUK AGENCIA a GLB para la web, con la geometría exacta del archivo.
 
 - Ejes: SketchUp (x fondo, y ancho, z arriba, pulgadas) -> glTF (X derecha, Y arriba, Z hacia el cliente, metros).
 - Materiales del proyecto: Capri (cuerpo), Duna (tope y elevador), inox (zócalo), aluminio (marco),
@@ -7,7 +7,10 @@
 - Los relojes que en el archivo quedaron flotando delante de la mesa ya vienen corregidos en el .skp leído
   (la matriz de cada grupo se lee por filas).
 
-Uso: python tools/skp_a_glb.py mesa.skp salida.glb
+Uso: python tools/skp_a_glb.py archivo.skp salida.glb [mesa|mueble|mueble2]
+     mesa    -> mesa de experiencia (primer mueble mesa cubitt.skp)
+     mueble  -> mueble de exhibición de 120 cm (segundo mueble mesa cubitt.skp)
+     mueble2 -> dos muebles iguales lado a lado (240 cm): mallas compartidas, logo solo en los laterales exteriores
 Requiere numpy, Pillow, mapbox_earcut, pygltflib (y lo que pide tools/artes_a_la_talla.py).
 """
 import io
@@ -31,10 +34,25 @@ CAPRI = os.path.join(RAIZ, 'assets', 'materiales', 'capri.jpg')
 DUNA = os.path.join(RAIZ, 'assets', 'materiales', 'duna.jpg')
 
 
+# Cada pieza: qué instancias del .skp toma (centro en y, cm), su centro en planta, material del arte, arte a la talla,
+# grupos que son marco de aluminio o línea de sombra, logos (lado, centro y ancho en m) y la línea de LED.
+PIEZAS = {
+    'mesa': {'filtro': lambda yc: yc > -100, 'origen': (25.0, -40.0), 'arte_mat': '_2', 'arte': 'viva-pro-2',
+             'aluminio': ('Grupo#2',), 'sombra': ('Grupo#1',),
+             'logos': [(1, (0.40, 0.40, -0.0095)), (-1, (-0.40, 0.40, -0.0095))], 'ancho_logo': 0.365,
+             'led': (-0.37, 0.37, -0.22, 0.22, 0.765)},
+    'mueble': {'filtro': lambda yc: yc < -150, 'origen': (30.05, -250.1), 'arte_mat': '_4', 'arte': 'nueva-era',
+               'aluminio': ('Grupo#9', 'Grupo#11'), 'sombra': ('Grupo#1',),
+               'logos': [(1, (0.60, 0.406, 0.012)), (-1, (-0.60, 0.406, 0.012))], 'ancho_logo': 0.31,
+               'led': (-0.567, 0.55, -0.1695, 0.1695, 0.765)},
+}
+ORIGEN = PIEZAS['mesa']['origen']
+
+
 def a_gltf(p_cm):
-    """(x fondo, y ancho, z alto) en cm, frente en x=0 y ancho de 0 a -80 -> metros glTF centrados."""
+    """(x fondo, y ancho, z alto) en cm -> metros glTF (X derecha, Y arriba, Z hacia el cliente) centrados en ORIGEN."""
     x, y, z = p_cm[:, 0], p_cm[:, 1], p_cm[:, 2]
-    return np.stack([-(y + 40.0), z, 25.0 - x], 1) / 100.0
+    return np.stack([-(y - ORIGEN[1]), z, ORIGEN[0] - x], 1) / 100.0
 
 
 class Constructor:
@@ -95,14 +113,31 @@ class Constructor:
         self.g.materials.append(m)
         return len(self.g.materials) - 1
 
-    def malla(self, nombre, pos, nor, uv, idx, mat):
+    def malla(self, nombre, pos, nor, uv, idx, mat, nodos=((0, 0, 0),)):
+        """Crea la malla y un nodo por cada traslación de `nodos` (los módulos repetidos comparten la geometría)."""
         at = {'POSITION': self._accesor(pos.astype(np.float32), 'VEC3', 34962),
               'NORMAL': self._accesor(nor.astype(np.float32), 'VEC3', 34962)}
         if uv is not None:
             at['TEXCOORD_0'] = self._accesor(uv.astype(np.float32), 'VEC2', 34962)
         prim = Primitive(attributes=at, indices=self._accesor(idx.astype(np.uint32).ravel(), 'SCALAR', 34963), material=mat)
         self.g.meshes.append(Mesh(name=nombre, primitives=[prim]))
-        self.g.nodes.append(Node(name=nombre, mesh=len(self.g.meshes) - 1))
+        mi = len(self.g.meshes) - 1
+        for t in nodos:
+            self.nodo(mi, t)
+        return mi
+
+    def otra_malla(self, mi, mat, nombre, nodos):
+        """Misma geometría que la malla mi con otro material (p. ej. otro arte en la caja de luz del segundo módulo)."""
+        prim = self.g.meshes[mi].primitives[0]
+        self.g.meshes.append(Mesh(name=nombre, primitives=[Primitive(attributes=prim.attributes, indices=prim.indices, material=mat)]))
+        for t in nodos:
+            self.nodo(len(self.g.meshes) - 1, t)
+
+    def nodo(self, mi, traslacion):
+        n = Node(name=self.g.meshes[mi].name, mesh=mi)
+        if any(traslacion):
+            n.translation = [float(v) for v in traslacion]
+        self.g.nodes.append(n)
         self.nodos.append(len(self.g.nodes) - 1)
 
     def guardar(self, ruta):
@@ -123,7 +158,7 @@ def uv_caja(p, n, escala_m):
     return np.stack([p[:, 0], -p[:, 1]], 1) / escala_m
 
 
-def plano_logo(c, centro, normal, ancho, mat_letras, mat_halo):
+def plano_logo(c, centro, normal, ancho, mat_letras, mat_halo, nodos=((0, 0, 0),)):
     """Logo oficial (PNG) en un plano vertical + halo cálido detrás. normal = ±X."""
     img = Image.open(LOGO)
     alto = ancho * img.height / img.width
@@ -139,25 +174,38 @@ def plano_logo(c, centro, normal, ancho, mat_letras, mat_halo):
         nor = np.repeat(normal[None], 4, 0)
         uv = np.array([[0, 1], [1, 1], [1, 0], [0, 0]], float)
         idx = np.array([[0, 1, 2], [0, 2, 3]])
-        c.malla(nombre, pos, nor, uv, idx, mat)
+        c.malla(nombre, pos, nor, uv, idx, mat, nodos)
 
 
 def main():
+    global ORIGEN
     skp, salida = sys.argv[1], sys.argv[2]
+    modo = sys.argv[3] if len(sys.argv) > 3 else 'mesa'
+    pieza = PIEZAS['mueble' if modo == 'mueble2' else modo]
+    ORIGEN = pieza['origen']
+    # composición: dos módulos de 1,20 m lado a lado (el de la izquierda en -0,60 m, el de la derecha en +0,60 m)
+    modulos = ((-0.60, 0, 0), (0.60, 0, 0)) if modo == 'mueble2' else ((0, 0, 0),)
     m = Modelo(extraer(skp, tempfile.mkdtemp()))
     nombres = {k: v['nombre'] for k, v in m.mats.items()}
+    from skp_lector import matriz
+    caras = []
+    for inst in m.raiz[4]:
+        d = m.defs.get(inst['ref'])
+        tr = m.triangulos(d, matriz(inst['t']), inst['mat']) if d else []
+        if tr and pieza['filtro'](np.concatenate([t[3] for t in tr])[:, 1].mean() * CM):
+            caras += [(('MODELO',) + t[0],) + t[1:] for t in tr]
     c = Constructor()
 
     # ---- materiales
     # zona limpia de la muestra Capri (la foto trae el rótulo «CAPRI · textura mate» y una línea abajo a la derecha)
     t_capri = c.textura(Image.open(CAPRI).convert('RGB').crop((0, 0, 600, 480)).resize((512, 410)), sampler=1)
     t_duna = c.textura(Image.open(DUNA).convert('RGB'))
-    caras_arte = [t for t in m.triangulos() if nombres.get(t[1]) == '_2']
-    p_arte = a_gltf(np.concatenate([t[3] for t in caras_arte]) * CM)
+    es_arte = lambda t: nombres.get(t[1]) == pieza['arte_mat'] or nombres.get(t[6]) == pieza['arte_mat']
+    p_arte = a_gltf(np.concatenate([t[3] for t in caras if es_arte(t)]) * CM)
     ancho_arte = np.ptp(p_arte[:, 0])
     alto_arte = np.ptp(p_arte[:, 1])
-    arte = artes_a_la_talla.generar('viva-pro-2', ancho_arte / alto_arte, 900)
-    t_arte = c.textura(Image.fromarray(arte), 88)
+    artes = [pieza['arte']] if modo != 'mueble2' else ['nueva-era', 'viva-pro-2']
+    t_artes = [c.textura(Image.fromarray(artes_a_la_talla.generar(a, ancho_arte / alto_arte, 900)), 88) for a in artes]
     logo = Image.open(LOGO).convert('RGBA')
     logo.thumbnail((1024, 1024))
     t_logo = c.textura(logo)
@@ -175,39 +223,46 @@ def main():
         'duna': c.material('Duna', tex=t_duna, rugosidad=0.6),
         'inox': c.material('Inox satinado', (0.86, 0.86, 0.87, 1), metal=1.0, rugosidad=0.25),
         'aluminio': c.material('Aluminio', (0.80, 0.79, 0.77, 1), metal=0.9, rugosidad=0.32),
-        'arte': c.material('Tela backlight 5000K', tex=t_arte, emisivo=(0.9, 0.92, 1.0), tex_emisiva=t_arte, rugosidad=0.9),
+        'arte': c.material('Tela backlight 5000K', tex=t_artes[0], emisivo=(0.62, 0.64, 0.7), tex_emisiva=t_artes[0], rugosidad=0.9),
         'sombra': c.material('Línea de sombra', (0.33, 0.30, 0.27, 1), rugosidad=0.9),
         'led': c.material('LED 3000K', (1, 0.76, 0.49, 1), emisivo=(1.0, 0.70, 0.42), sin_luz=True),
         'vidrio': c.material('Acrílico', (0.92, 0.94, 0.95, 0.28), rugosidad=0.05, mezcla='BLEND'),
         'logo': c.material('Logo platino', (0.92, 0.91, 0.88, 1), metal=0.75, rugosidad=0.3, tex=t_logo, mezcla='MASK'),
         'halo': c.material('Halo 3000K', (1, 1, 1, 1), tex=t_halo, mezcla='BLEND', sin_luz=True),
     }
+    arte_2 = None
+    if len(t_artes) > 1:
+        arte_2 = c.material('Tela backlight 5000K · módulo 2', tex=t_artes[1], emisivo=(0.62, 0.64, 0.7), tex_emisiva=t_artes[1], rugosidad=0.9)
     c.g.materials[M['logo']].alphaCutoff = 0.4
-    colores = {}
 
     def mat_de(nombre_skp, ruta):
         grupo = ruta[1] if len(ruta) > 1 else ''
-        if nombre_skp == '_2':
-            return 'arte'
         if nombre_skp == '_':
             return 'duna'
         if nombre_skp == 'C02_Golden_Beige':
             return 'capri'
+        if grupo in pieza['aluminio']:
+            return 'aluminio'
         if nombre_skp == 'Metal_06_1K':
-            return 'aluminio' if grupo == 'Grupo#2' else 'inox'
+            return 'inox'
         if nombre_skp == 'Glass_Basic_012':
             return 'vidrio'
-        if grupo == 'Grupo#1':
+        if grupo in pieza['sombra']:
             return 'sombra'
         return None
 
     # ---- geometría por material
     lotes = {}
-    for ruta, mid, fid, pw, tri, nw, mb in m.triangulos():
+    for ruta, mid, fid, pw, tri, nw, mb in caras:
         if 'Grupo#64' in ruta:  # logo modelado en el .skp: se reemplaza por el archivo oficial
             continue
-        nombre_skp = nombres.get(mid)
-        clave = mat_de(nombre_skp, ruta)
+        n = np.array([-nw[1], nw[2], -nw[0]])
+        if nombres.get(mid) == pieza['arte_mat']:
+            clave = 'arte'
+        elif nombres.get(mb) == pieza['arte_mat']:
+            clave, n = 'arte', -n  # el arte está en la cara posterior (mira al cliente)
+        else:
+            clave = mat_de(nombres.get(mid), ruta)
         if clave is None:  # productos y piezas sin material del proyecto: color del .skp
             info = m.mats.get(mid)
             rgb = info['color'] if info else (205, 205, 205)
@@ -219,7 +274,6 @@ def main():
                 M[clave] = c.material(f'SKP {rgb}', tuple(v / 255 for v in rgb) + (alfa,), rugosidad=0.55,
                                       mezcla='BLEND' if alfa < 1 else 'OPAQUE')
         p = a_gltf(pw * CM)
-        n = np.array([-nw[1], nw[2], -nw[0]])
         t = tri.copy()
         # orientar los triángulos con la normal de la cara
         v1, v2 = p[t[:, 1]] - p[t[:, 0]], p[t[:, 2]] - p[t[:, 0]]
@@ -236,21 +290,25 @@ def main():
         L['idx'].append(t + L['n'])
         L['n'] += len(p)
     for clave, L in lotes.items():
-        c.malla(clave.split(':')[0] if not clave.startswith('skp') else 'producto', np.concatenate(L['pos']), np.concatenate(L['nor']),
-                np.concatenate(L['uv']), np.concatenate(L['idx']), M[clave])
+        nodos = modulos[:1] if (clave == 'arte' and arte_2 is not None) else modulos
+        mi = c.malla(clave.split(':')[0] if not clave.startswith('skp') else 'producto', np.concatenate(L['pos']),
+                     np.concatenate(L['nor']), np.concatenate(L['uv']), np.concatenate(L['idx']), M[clave], nodos)
+        if clave == 'arte' and arte_2 is not None:
+            c.otra_malla(mi, arte_2, 'arte-modulo-2', modulos[1:])
 
-    # ---- LED 3000K continuo en la línea de sombra (bajo el tope, a 2 mm del canto rehundido)
-    y_led = 0.765
-    for (x0, x1, z) in ((-0.37, 0.37, 0.221), (-0.37, 0.37, -0.221)):
+    # ---- LED 3000K continuo en la línea de sombra (bajo el tope, a 1 mm del canto rehundido)
+    x0, x1, z0, z1, y_led = pieza['led']
+    for z in (z0 - 0.001, z1 + 0.001):
         pos = np.array([[x0, y_led - 0.004, z], [x1, y_led - 0.004, z], [x1, y_led + 0.004, z], [x0, y_led + 0.004, z]])
-        c.malla('led', pos, np.repeat([[0, 0, np.sign(z)]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'])
-    for (z0, z1, x) in ((-0.22, 0.22, 0.371), (-0.22, 0.22, -0.371)):
+        c.malla('led', pos, np.repeat([[0, 0, np.sign(z)]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
+    for x in (x0 - 0.001, x1 + 0.001):
         pos = np.array([[x, y_led - 0.004, z0], [x, y_led - 0.004, z1], [x, y_led + 0.004, z1], [x, y_led + 0.004, z0]])
-        c.malla('led', pos, np.repeat([[np.sign(x), 0, 0]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'])
+        c.malla('led', pos, np.repeat([[np.sign(x), 0, 0]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
 
-    # ---- logo oficial en ambos laterales: donde estaba el del .skp (36,5 cm de ancho, centro a 40 cm de alto)
-    for lado in (1, -1):
-        plano_logo(c, np.array([0.40 * lado, 0.40, 0.25 - 0.2595]), np.array([lado, 0, 0.0]), 0.365, M['logo'], M['halo'])
+    # ---- logo oficial en los laterales (donde estaba el del .skp); en composición solo en los laterales exteriores
+    for lado, centro in pieza['logos']:
+        nodos = modulos if len(modulos) == 1 else [t for t in modulos if np.sign(t[0]) == lado]
+        plano_logo(c, np.array(centro), np.array([lado, 0, 0.0]), pieza['ancho_logo'], M['logo'], M['halo'], nodos)
 
     c.guardar(salida)
     print(f'{salida}: {os.path.getsize(salida) / 1e6:.2f} MB · arte {ancho_arte * 100:.1f} × {alto_arte * 100:.1f} cm')

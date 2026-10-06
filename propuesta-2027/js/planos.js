@@ -2,6 +2,24 @@
 // Unidades en milímetros; x crece a la derecha, y crece hacia el frente (cliente abajo).
 const P = (n) => `propuesta-2027/artes-cubitt/productos/${n}.png`;
 
+// Módulo del mueble de exhibición (centrado en dx): caja de luz, elevador Duna y relojes al frente.
+const RELOJ = { 'viva-pro-2': 'Viva Pro 2', 'viva-2-rosado': 'Viva 2', 'viva-lite-lilac': 'Viva Lite', 'aura-2-azul': 'Aura 2',
+  'aura-pro-2': 'Aura Pro 2', 'terra-verde': 'Terra' };
+const MUEBLE_ZONAS = (dx, etiquetas = true) => [
+  { x: dx - 600, y: -184, w: 1200, h: 16, tipo: 'luz', etiqueta: 'Caja de luz trasera 120 × 65 cm · arte 5000K' },
+  { x: dx - 572, y: -158, w: 1124, h: 140, tipo: 'duna', etiqueta: 'Elevador Duna · 112 × 14 × 5 cm · audio' },
+  { x: dx - 585, y: 35, w: 1100, h: 140, tipo: 'zona', etiqueta: 'Relojes · 8 checkpoints con ficha acrílica al frente' },
+].map((z) => (etiquetas ? z : { ...z, etiqueta: null }));
+const MUEBLE_PRODUCTOS = (dx, relojes) => [
+  ...[-530, -400, -261, -110, 35, 165, 304, 455].map((x, i) => ({ n: relojes[i], x: dx + x, y: 72, w: 70, nombre: RELOJ[relojes[i]] })),
+  { n: 'power-anc-negro', x: dx - 444, y: -67, w: 150, nombre: 'Power ANC' },
+  { n: 'power-buds-2', x: dx - 281, y: -105, w: 70, nombre: 'Power Buds 2' },
+  { n: 'power-pro-2', x: dx + 29, y: -100, w: 230, nombre: 'Power Pro 2' },
+  { n: 'power-plus-2', x: dx + 211, y: -80, w: 85, nombre: 'Power Plus 2' },
+  { n: 'power-go-2', x: dx + 352, y: -80, w: 70, nombre: 'Power Go 2' },
+  { n: 'power-mini', x: dx + 463, y: -80, w: 65, nombre: 'Power Mini' },
+];
+
 export const PLANOS = {
   mesa: {
     // Medidas y posiciones tomadas del SketchUp «primer mueble mesa cubitt» (tope Duna con esquinas R40).
@@ -28,22 +46,22 @@ export const PLANOS = {
     frente: 'Frente: caja de luz 66 × 56 cm (Viva Pro 2) · laterales: logo platino 3000K · atrás: dos puertas push',
   },
   mueble: {
+    // Medidas y posiciones del SketchUp «segundo mueble mesa cubitt»: módulo de 120 cm que se une lado a lado.
     titulo: 'Mueble de exhibición',
-    ancho: 1200, fondo: 400, radio: 30,
-    zonas: [
-      { x: -580, y: -200, w: 1160, h: 60, tipo: 'luz', etiqueta: 'Caja de luz trasera · arte de campaña 5000K' },
-      { x: -500, y: -130, w: 1000, h: 140, tipo: 'zona', etiqueta: 'Repisa acrílica regulable · producto héroe' },
-      { x: -580, y: 170, w: 1160, h: 25, tipo: 'inox', etiqueta: 'Riel de precio inox · CTA' },
-    ],
+    ancho: 1200, fondo: 400, radio: 40,
+    zonas: MUEBLE_ZONAS(0),
+    productos: MUEBLE_PRODUCTOS(0, ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2']),
+    frente: 'Frente: tres puertas push con gola · laterales: logo platino 3000K · caja de luz trasera 120 × 65 cm',
+  },
+  modular: {
+    titulo: 'Composición de dos muebles',
+    ancho: 2400, fondo: 400, radio: 40, modulos: 2,
+    zonas: [...MUEBLE_ZONAS(-600), ...MUEBLE_ZONAS(600, false)],
     productos: [
-      { n: 'viva-pro-2', x: 0, y: -60, w: 80, nombre: 'Héroe: Viva Pro 2' },
-      { n: 'viva-2-rosado', x: -440, y: 70, w: 75, nombre: 'Viva 2' },
-      { n: 'viva-lite-lilac', x: -220, y: 70, w: 75, nombre: 'Viva Lite' },
-      { n: 'power-buds-2', x: 0, y: 70, w: 90, nombre: 'Power Buds 2' },
-      { n: 'termo-burgandy', x: 300, y: 60, w: 80, nombre: 'Termo' },
-      { n: 'coffee-mug-verde', x: 440, y: 60, w: 90, nombre: 'Coffee Mug' },
+      ...MUEBLE_PRODUCTOS(-600, ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2']),
+      ...MUEBLE_PRODUCTOS(600, ['terra-verde', 'aura-pro-2', 'aura-2-azul', 'viva-lite-lilac', 'viva-2-rosado', 'viva-pro-2', 'terra-verde', 'viva-pro-2']),
     ],
-    frente: 'Frente: gabinete Capri con logo platino · lateral: caja de luz 40 × 76',
+    frente: 'Dos módulos iguales lado a lado (240 cm) · cajas de luz Nueva Era y Viva Pro 2 · logo solo en los laterales exteriores',
   },
   sobremesa: {
     titulo: 'Display de sobremesa',
@@ -96,7 +114,10 @@ export function planoSVG(clave) {
   const ox = W / 2, oy = H / 2;
   const t = (txt, x, y, extra = '') => `<text x="${x}" y="${y}" ${extra}>${txt}</text>`;
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Plano cenital: ${p.titulo}" xmlns="http://www.w3.org/2000/svg">`;
-  s += `<rect x="${ox - p.ancho / 2}" y="${oy - p.fondo / 2}" width="${p.ancho}" height="${p.fondo}" rx="${p.radio}" class="plano-cuerpo"/>`;
+  const n = p.modulos || 1, wm = p.ancho / n;
+  for (let i = 0; i < n; i++) {
+    s += `<rect x="${ox - p.ancho / 2 + i * wm}" y="${oy - p.fondo / 2}" width="${wm}" height="${p.fondo}" rx="${p.radio}" class="plano-cuerpo"/>`;
+  }
   for (const z of p.zonas) {
     s += `<rect x="${ox + z.x}" y="${oy + z.y}" width="${z.w}" height="${z.h}" rx="10" style="${ESTILO[z.tipo]};stroke-width:3"/>`;
   }
@@ -118,7 +139,9 @@ export function planoSVG(clave) {
 
 export function leyenda(clave) {
   const p = PLANOS[clave];
-  const zonas = p.zonas.map((z) => `<li><span class="leyenda-muestra" style="background:${FONDO[z.tipo]}"></span>${z.etiqueta}</li>`).join('');
-  const prods = p.productos.map((pr) => `<li><img src="${P(pr.n)}" alt="" loading="lazy">${pr.nombre}</li>`).join('');
+  const zonas = p.zonas.filter((z) => z.etiqueta).map((z) => `<li><span class="leyenda-muestra" style="background:${FONDO[z.tipo]}"></span>${z.etiqueta}</li>`).join('');
+  const vistos = new Set();
+  const prods = p.productos.filter((pr) => pr.nombre && !vistos.has(pr.n) && vistos.add(pr.n))
+    .map((pr) => `<li><img src="${P(pr.n)}" alt="" loading="lazy">${pr.nombre}</li>`).join('');
   return `<ul class="leyenda-zonas">${zonas}<li><span class="leyenda-muestra"></span>${p.frente}</li></ul><ul class="leyenda-productos">${prods}</ul>`;
 }

@@ -226,32 +226,47 @@ function crearMesa(tx) {
   return p;
 }
 
-// ---------- 02 · Mueble de exhibición 120 × 140 × 40 ----------
-function crearMueble(tx, nombre, { arteFondo, arteLateral, lado = 0, conLogo, productos }) {
+// ---------- 02 · Mueble de exhibición 120 × 148,6 × 40 (SketchUp «segundo mueble mesa cubitt») ----------
+// Módulo de 120 cm: mesón como la mesa (base recta Capri sobre zócalo inox, línea de sombra con LED 3000K y tope Duna
+// a 78,8 cm), tres puertas push con gola al frente, elevador Duna al fondo y caja de luz trasera de 120 × 64,8 cm sobre
+// cinco postes. Funciona solo o en composición: dos módulos iguales lado a lado (240 cm), con logo en los laterales libres.
+function crearMueble(tx, nombre, { arte, logos = [-1, 1], relojes }) {
   const p = new Pieza(nombre);
   const capri = p.mat({ color: COLOR.capri, roughness: 0.8 });
   const duna = p.mat(materialDuna(tx.duna));
   const sombra = p.mat({ color: 0x8f8579, roughness: 0.9 });
-  const acrilico = p.mat({ color: 0xffffff, transparent: true, opacity: 0.25, roughness: 0.05 });
-
-  zocalo(p, 1.12, 0.34);
-  cuerpo(p, 1.2, 0.79, 0.4, capri, 0, 0.06, 0);
-  p.caja(0.003, 0.7, 0.002, sombra, 0, 0.45, 0.201, 0);
-  lineaLed(p, 1.16, 0, 0.845, 0.19);
-  cuerpo(p, 1.22, 0.03, 0.42, duna, 0, 0.85, 0);
-  // Caja de luz trasera (88 a 140 cm)
-  cuerpo(p, 1.2, 0.52, 0.06, capri, 0, 0.88, -0.17, undefined, 0.015);
-  cajaDeLuz(p, 1.16, 0.48, arteFondo, 0, 1.14, -0.14, 0);
-  if (conLogo) logoPlatino(p, 0.46, 0, 0.47, 0.202);
-  // Caja de luz lateral 40 × 76 en el lado expuesto
-  if (lado) cajaDeLuz(p, 0.36, 0.72, arteLateral, lado * 0.601, 0.48, 0, lado * Math.PI / 2);
-  // Repisa acrílica regulable
-  p.caja(1.0, 0.008, 0.14, acrilico, 0, 1.06, -0.06, 0.002);
-  producto(p, productos[0], 0.085, 0, 1.064, -0.06);
-  productos.slice(1).forEach((n, i, arr) => producto(p, n, n.startsWith('termo') || n.startsWith('coffee') ? 0.22 : n.startsWith('power-anc') ? 0.17 : 0.085,
-    -0.44 + i * (0.88 / Math.max(1, arr.length - 1)), 0.88, 0.06, { base: n.startsWith('termo') || n.startsWith('coffee') || n.startsWith('power-anc') ? null : 'checkpoint' }));
   const inox = p.mat({ color: COLOR.inox, metalness: 1, roughness: 0.22 });
-  p.caja(1.18, 0.022, 0.006, inox, 0, 0.865, 0.213, 0.002);
+  const alu = p.mat({ color: COLOR.aluminio, metalness: 0.9, roughness: 0.32 });
+  const acrilico = p.mat({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.05 });
+
+  cuerpo(p, 1.2, 0.05, 0.399, inox, 0, 0, 0, undefined, 0.04);
+  cuerpo(p, 1.2, 0.702, 0.399, capri, 0, 0.05, 0, undefined, 0.002);
+  cuerpo(p, 1.12, 0.018, 0.339, sombra, 0, 0.752, 0, undefined, 0.01);
+  lineaLed(p, 1.1, 0, 0.765, 0.1705);
+  lineaLed(p, 1.1, 0, 0.765, -0.1705);
+  cuerpo(p, 1.2, 0.018, 0.399, duna, 0, 0.77, 0, undefined, 0.045);
+  // Frente: tres puertas push y gola rehundida bajo el tope; atrás, dos puertas
+  [-0.193, 0.193].forEach((x) => p.caja(0.003, 0.631, 0.002, sombra, x, 0.3865, 0.2005, 0));
+  p.caja(1.162, 0.031, 0.004, sombra, 0, 0.7175, 0.199, 0);
+  p.caja(0.003, 0.65, 0.002, sombra, 0, 0.401, -0.2005, 0);
+  // Elevador Duna al fondo y caja de luz trasera sobre cinco postes de aluminio
+  const yTop = 0.788, yRiser = 0.838;
+  p.caja(1.124, 0.05, 0.14, duna, -0.01, 0.813, -0.0885, 0.003);
+  [-0.495, -0.272, -0.028, 0.252, 0.511].forEach((x) => p.caja(0.012, 0.05, 0.012, alu, x, 0.813, -0.1735, 0));
+  cajaDeLuz(p, 1.2, 0.648, arte, 0, 1.162, -0.1795, 0, undefined, { borde: 0.0095, fondo: 0.007, radio: 0.06 });
+  // Logo platino 3000K en los laterales libres (31 cm, centrado a 40,6 cm)
+  logos.forEach((lado) => logoPlatino(p, 0.31, lado * 0.602, 0.406, 0.012, lado * Math.PI / 2));
+  // Productos como en el SketchUp: ocho relojes al frente con ficha acrílica y audio sobre el elevador
+  [-0.5305, -0.4005, -0.2615, -0.1105, 0.0355, 0.1655, 0.3045, 0.4555].forEach((x, i) => {
+    producto(p, relojes[i % relojes.length], 0.075, x, yTop, 0.0725);
+    p.caja(0.08, 0.004, 0.05, acrilico, x, yTop + 0.002, 0.1375, 0.001);
+  });
+  producto(p, 'power-anc-negro', 0.2, -0.444, yRiser, -0.0675, { base: null });
+  producto(p, 'power-buds-2', 0.07, -0.281, yRiser, -0.1055, { base: null });
+  producto(p, 'power-pro-2', 0.13, 0.029, yRiser, -0.1005, { base: null });
+  producto(p, 'power-plus-2', 0.2, 0.211, yRiser, -0.0795, { base: null });
+  producto(p, 'power-go-2', 0.09, 0.352, yRiser, -0.08, { base: null });
+  producto(p, 'power-mini', 0.085, 0.463, yRiser, -0.08, { base: null });
   return p;
 }
 
@@ -316,8 +331,8 @@ const VISTAS = {
   luz:        { cam: [0.0, 0.62, 1.45], obj: [0, 0.42, 0], foco: ['mesa'], pulso: true },
   planta:     { cam: [0.0, 2.05, 0.02], obj: [0, 0.8, 0], foco: ['mesa'] },
   vendedor:   { cam: [-0.95, 1.15, -1.2], obj: [0, 0.45, -0.1], foco: ['mesa'] },
-  mueble:     { cam: [0.55, 1.45, 0.95], obj: [-0.61, 1.0, -1.75], foco: ['mueble-a'] },
-  modular:    { cam: [0.0, 1.55, 2.0], obj: [0, 1.0, -1.75], foco: ['mueble-a', 'mueble-b'] },
+  mueble:     { cam: [0.45, 1.4, 0.7], obj: [-0.6, 0.95, -1.75], foco: ['mueble-a'] },
+  modular:    { cam: [2.4, 1.75, 1.4], obj: [0.1, 0.95, -1.75], foco: ['mueble-a', 'mueble-b'] },
   sobremesa:  { cam: [2.95, 1.32, -0.15], obj: [2.35, 1.0, -0.85], foco: ['sobremesa'] },
   kids:       { cam: [-1.05, 1.25, 1.35], obj: [-2.3, 0.7, -0.55], foco: ['kids'] },
   logo:       { cam: [1.25, 0.5, 0.3], obj: [0.4, 0.4, 0], foco: ['mesa'] },
@@ -407,8 +422,6 @@ export function crearEscena(contenedor, { onListo } = {}) {
     arteMesa: 'artes-cubitt/a-la-talla/mesa-frente-viva-pro-2.jpg',
     arteFondoViva: 'artes-cubitt/a-la-talla/mueble-fondo-viva-pro-2.jpg',
     arteFondoNuevaEra: 'artes-cubitt/a-la-talla/mueble-fondo-nueva-era.jpg',
-    arteLateralAura: 'artes-cubitt/a-la-talla/mueble-lateral-aura-pro-2.jpg',
-    arteLateralTerra: 'artes-cubitt/a-la-talla/mueble-lateral-terra.jpg',
     arteSobremesa: 'artes-cubitt/a-la-talla/sobremesa-viva-pro-2.jpg',
     arteJr: 'artes-cubitt/a-la-talla/kids-rapunzel.jpg',
     duna: 'assets/materiales/duna.jpg',
@@ -429,21 +442,22 @@ export function crearEscena(contenedor, { onListo } = {}) {
     HALO = texturaHalo(tx.logo);
 
     piezas.mesa = crearMesa(tx);
-    piezas['mueble-a'] = crearMueble(tx, 'mueble-a', { arteFondo: tx.arteFondoViva, arteLateral: tx.arteLateralAura, lado: -1, conLogo: true,
-      productos: ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'power-buds-2', 'termo-burgandy'] });
-    piezas['mueble-b'] = crearMueble(tx, 'mueble-b', { arteFondo: tx.arteFondoNuevaEra, arteLateral: tx.arteLateralTerra, lado: 1, conLogo: false,
-      productos: ['terra-verde', 'aura-2-azul', 'aura-pro-2', 'power-anc-crema', 'coffee-mug-verde'] });
+    // Composición de dos módulos iguales lado a lado: logo solo en los laterales exteriores
+    piezas['mueble-a'] = crearMueble(tx, 'mueble-a', { arte: tx.arteFondoNuevaEra, logos: [-1],
+      relojes: ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2'] });
+    piezas['mueble-b'] = crearMueble(tx, 'mueble-b', { arte: tx.arteFondoViva, logos: [1],
+      relojes: ['terra-verde', 'aura-pro-2', 'aura-2-azul', 'viva-lite-lilac', 'viva-2-rosado', 'viva-pro-2', 'terra-verde', 'viva-pro-2'] });
     piezas.sobremesa = crearSobremesa(tx);
     piezas.kids = crearKids(tx);
-    piezas['mueble-a'].grupo.position.set(-0.61, 0, -1.75);
-    piezas['mueble-b'].grupo.position.set(0.61, 0, -1.75);
+    piezas['mueble-a'].grupo.position.set(-0.6, 0, -1.75);
+    piezas['mueble-b'].grupo.position.set(0.6, 0, -1.75);
     piezas.sobremesa.grupo.position.set(2.35, 0.9, -0.85);
     piezas.kids.grupo.position.set(-2.3, 0, -0.55);
     piezas.kids.grupo.rotation.y = 0.55;
     Object.values(piezas).forEach((p) => scene.add(p.grupo));
     halo(0, 0.4, 0.6);
-    halo(-0.61, 1.15, -1.4);
-    halo(0.61, 1.15, -1.4);
+    halo(-0.6, 1.16, -1.5);
+    halo(0.6, 1.16, -1.5);
     halo(2.35, 1.1, -0.65, COLOR.luz5000, 0.35);
     halo(-2.1, 1.1, -0.35);
     halo(0.62, 0.4, 0, COLOR.luz3000, 0.35);

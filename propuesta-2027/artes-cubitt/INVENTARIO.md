@@ -3,7 +3,7 @@
 Copia de la carpeta **ARTES CUBITT** entregada por FARUK AGENCIA (artes del mobiliario, fotos de producto, planos y archivos fuente).
 Las versiones optimizadas para la web están en `web/` y los recortes sin fondo en `productos/` (`python tools/preparar_artes.py`).
 
-Total: **90 archivos**.
+Total: **91 archivos**.
 
 | Archivo | Tipo | KB | Píxeles |
 |---|---|---:|---|
@@ -83,6 +83,7 @@ Total: **90 archivos**.
 | Reloj Inteligente Cubitt Jr. CTJR-2 Artic Blue 02.jpg | Foto de producto | 241 | 1000 × 1000 |
 | Reloj Inteligente Cubitt Teens CTTN-3 Forest Green 01.jpg | Foto de producto | 168 | 1000 × 1000 |
 | Reloj Inteligente Cubitt Teens CTTN-3 Forest Green 02.jpg | Foto de producto | 244 | 1000 × 1000 |
+| segundo mueble mesa cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 11.240 |  |
 | Termo Cubitt CTHB24-4D Burgandy 01.webp | Foto de producto | 265 | 1000 × 1000 |
 | Termo Cubitt CTHB24-4D Burgandy 02.webp | Foto de producto | 273 | 1000 × 1000 |
 | Terra verde 2.webp | Foto de producto | 26 | 800 × 800 |
