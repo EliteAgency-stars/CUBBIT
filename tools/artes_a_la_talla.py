@@ -101,8 +101,9 @@ def nueva_era(R, H):
         # Horizontal (como la versión horizontal oficial): títulos a la izquierda, logo sobre los relojes
         # a la derecha y el sello VITA a ras de la esquina inferior derecha.
         bloque_h = tam['nueva'][1] + 1.08 * tam['era'][1] + tam['tagline'][1] + 1.10 * tam['modelos'][1] + 0.08 * tam['era'][1]
-        st = 0.68 * H / bloque_h
-        sr = 0.60 * H / tam['relojes'][1]
+        ancha = min(1.0, max(0.0, (R - 2.6) / 2.0))  # cajas muy apaisadas: piezas un poco más grandes
+        st = (0.68 + 0.08 * ancha) * H / bloque_h
+        sr = (0.60 + 0.12 * ancha) * H / tam['relojes'][1]
         sv = 0.19 * H / tam['vita'][1]
         w_vita = sv * tam['vita'][0]
         contenido = st * tam['era'][0] + sr * tam['relojes'][0]

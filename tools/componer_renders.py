@@ -10,7 +10,7 @@ Este script, para cada render:
   4. pega el logo oficial platino sin deformarlo, con halo de contorno cálido 3000K sobre el Capri;
   5. limpia el reflejo verde que el croma dejaba en piso y muebles.
 
-Uso: python3 componer_renders.py entrada.png salida.jpg arte0,arte1,... [dir_artes_salida]
+Uso: python3 componer_renders.py entrada.png salida.jpg arte0,arte1,... [dir_artes_salida] [--piso]
      (artes en el orden de las cajas de izquierda a derecha: nueva-era, viva-pro-2, terra, aura-pro-2, rapunzel)
 Imprime un JSON con las cajas, proporciones y artes usados.
 """
@@ -187,20 +187,21 @@ def placa_logo(logo_rgba, ancho, alto, color):
     alto_letra = max(2.0, l.shape[0])
     placa = np.full((H, W, 3), color, np.float32)
     # luz que sale por detrás de las letras (separadores de 15 mm) y baña el Capri: halo amplio + contorno intenso
-    halo = cv2.GaussianBlur(a, (0, 0), alto_letra * 0.16)
+    halo = cv2.GaussianBlur(a, (0, 0), alto_letra * 0.18)
     halo /= max(halo.max(), 1e-6)
-    contorno = cv2.GaussianBlur(cv2.dilate(a, np.ones((3, 3), np.uint8)), (0, 0), alto_letra * 0.035)
-    contorno = np.clip(contorno * 1.6, 0, 1)
-    luz = np.clip(0.55 * halo + 0.75 * contorno, 0, 1)[..., None]
-    placa = 255 - (255 - placa) * (1 - luz * (CALIDO / 255) * 0.95)
-    placa = placa * (1 - 0.10 * luz) + CALIDO * 0.10 * luz
+    contorno = cv2.GaussianBlur(cv2.dilate(a, np.ones((3, 3), np.uint8)), (0, 0), alto_letra * 0.04)
+    contorno = np.clip(contorno * 1.5, 0, 1)
+    luz = np.clip(0.50 * halo + 0.70 * contorno, 0, 1)[..., None]
+    # el Capri se tiñe de ámbar cerca de las letras y se aclara un poco (la luz no es blanca: 3000K)
+    placa = placa * (1 - 0.55 * luz) + CALIDO * 0.55 * luz
+    placa = placa + (CALIDO * 0.35) * luz
     # sombra corta del canto del acrílico
     off = max(1, int(alto_letra * 0.04))
     sombra = cv2.GaussianBlur(np.roll(np.roll(a, off, 0), off // 2, 1), (0, 0), alto_letra * 0.03)[..., None]
     placa = placa * (1 - 0.18 * sombra * (1 - a[..., None]))
     # cara platino; el borde de las letras toma un filo cálido
     filo = np.clip(a - cv2.erode(a, np.ones((3, 3), np.uint8)), 0, 1)[..., None]
-    cara = rgb * (1 - 0.35 * filo) + CALIDO * 0.35 * filo
+    cara = rgb * (1 - 0.45 * filo) + CALIDO * 0.45 * filo
     placa = placa * (1 - a[..., None]) + cara * a[..., None]
     return np.clip(placa, 0, 255).astype(np.uint8)
 
@@ -214,29 +215,35 @@ def color_anillo(img, mask):
 # ------------------------------------------------------------------ limpieza
 
 def quitar_reflejo_verde(img, cajas):
-    """El croma tiñe de verde el piso y los cantos cercanos. Se neutraliza solo por debajo del borde superior
-    de cada caja, cerca de ella y en tonos verdes (los relojes verde oliva o los productos no se tocan)."""
+    """El croma de la caja del frente tiñe de verde el piso. Se neutraliza solo por debajo del borde inferior de
+    cada caja y cerca de ella: se resta el exceso de verde respecto al tono neutro del resto de la imagen."""
     H, W = img.shape[:2]
-    zona = np.zeros((H, W), bool)
-    yy = np.arange(H)[:, None]
-    for quad, _, z in cajas:
-        cerca = cv2.GaussianBlur(z.astype(np.float32) / 255, (0, 0), 140) > 0.002
-        zona |= cerca & (yy > quad[:, 1].min())
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    tono = (hsv[..., 0] >= 45) & (hsv[..., 0] <= 82) & (hsv[..., 1] > 18)
     b, g, r = [c.astype(np.float32) for c in cv2.split(img)]
-    exceso = np.clip(g - (np.maximum(r, b) * 0.6 + (r + b) * 0.2), 0, None)
-    mascara_cajas = np.zeros((H, W), np.uint8)
-    for _, _, z in cajas:
-        mascara_cajas |= z
-    sel = zona & tono & (cv2.dilate(mascara_cajas, np.ones((5, 5), np.uint8)) == 0)
-    exceso = cv2.GaussianBlur(exceso * sel, (0, 0), 1.5)
-    return cv2.merge([b, g - exceso, r]).clip(0, 255).astype(np.uint8), int((exceso > 3).sum())
+    d = g - (r + b) / 2
+    base = float(np.median(d))
+    yy = np.arange(H)[:, None]
+    xx = np.arange(W)[None, :]
+    peso = np.zeros((H, W), np.float32)
+    for quad, _, z in cajas:
+        tl, tr, br, bl = quad
+        # recta del borde inferior de la caja
+        t = np.clip((xx - bl[0]) / max(br[0] - bl[0], 1), 0, 1)
+        y_inf = bl[1] + t * (br[1] - bl[1])
+        debajo = (yy > y_inf + 4) & (xx > bl[0] - 0.15 * (br[0] - bl[0])) & (xx < br[0] + 0.15 * (br[0] - bl[0]))
+        cerca = cv2.GaussianBlur(z.astype(np.float32) / 255, (0, 0), 160)
+        cerca = np.clip(cerca / 0.02, 0, 1)
+        peso = np.maximum(peso, cerca * debajo)
+    sat = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[..., 1]
+    exceso = np.clip(d - base - 1.5, 0, None) * peso * (sat < 90)
+    exceso = cv2.GaussianBlur(exceso, (0, 0), 3)
+    return cv2.merge([b + exceso * 0.15, g - exceso, r + exceso * 0.25]).clip(0, 255).astype(np.uint8), int((exceso > 2).sum())
 
 
 def main():
-    entrada, salida, lista = sys.argv[1], sys.argv[2], [x for x in sys.argv[3].split(',') if x]
-    dir_artes = sys.argv[4] if len(sys.argv) > 4 else None
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    piso = '--piso' in sys.argv  # la caja de luz está cerca del piso y lo tiñe de verde
+    entrada, salida, lista = args[0], args[1], [x for x in args[2].split(',') if x]
+    dir_artes = args[3] if len(args) > 3 else None
     img = cv2.imread(entrada)
     H, W = img.shape[:2]
     logo = cv2.imread(LOGO, cv2.IMREAD_UNCHANGED)
@@ -270,7 +277,8 @@ def main():
     rep['pixeles_croma_restantes'] = int((resto > 0).sum())
     if resto.any():
         img = cv2.inpaint(img, resto, 4, cv2.INPAINT_TELEA)
-    img, rep['pixeles_reflejo_verde'] = quitar_reflejo_verde(img, cajas)
+    if piso:
+        img, rep['pixeles_reflejo_verde'] = quitar_reflejo_verde(img, cajas)
     cv2.imwrite(salida, img, [cv2.IMWRITE_JPEG_QUALITY, 92])
     print(json.dumps(rep, ensure_ascii=False))
 
