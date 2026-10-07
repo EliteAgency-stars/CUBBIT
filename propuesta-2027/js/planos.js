@@ -6,6 +6,7 @@ const P = (n) => `propuesta-2027/artes-cubitt/productos/${n}.png`;
 const RELOJ = { 'viva-pro-2': 'Viva Pro 2', 'viva-2-rosado': 'Viva 2', 'viva-lite-lilac': 'Viva Lite', 'aura-2-azul': 'Aura 2',
   'aura-pro-2': 'Aura Pro 2', 'terra-verde': 'Terra' };
 const RELOJES_MESA = ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2', 'terra-verde'];
+const RELOJES_MURO = ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2', 'terra-verde', 'viva-2-rosado'];
 const MUEBLE_ZONAS = (dx, etiquetas = true) => [
   { x: dx - 600, y: -184, w: 1200, h: 16, tipo: 'luz', etiqueta: 'Caja de luz trasera 120 × 65 cm · arte 5000K' },
   { x: dx - 572, y: -158, w: 1124, h: 140, tipo: 'duna', etiqueta: 'Elevador Duna · 112 × 14 × 5 cm · audio' },
@@ -71,6 +72,31 @@ export const PLANOS = {
     productos: [['viva-2-rosado', -183, 26], ['viva-pro-2', 9, 26], ['aura-2-azul', 173, 26], ['terra-verde', -84, -66], ['aura-pro-2', 94, -66]]
       .map(([n, x, y]) => ({ n, x, y, w: 60, nombre: RELOJ[n] })),
     frente: 'Frente: logo platino en la base Capri · espalda de la caja de luz: isotipo platino · línea LED 3000K bajo el tope Duna',
+  },
+  muro: {
+    // Bonus · SketchUp «cuarto mueble mesa cubitt»: muro de 220 × 49 cm. Abajo el mesón (relojes y audífonos); la repisa
+    // flotante a 1,26 m (audio) se dibuja en su posición en planta, sobre el mesón.
+    titulo: 'Muro de exhibición (bonus)',
+    ancho: 2200, fondo: 490, radio: 4,
+    zonas: [
+      { x: -820, y: -160, w: 1683, h: 250, tipo: 'duna', etiqueta: 'Repisa flotante Duna a 1,26 m · 168 × 25 cm · audio y 8 fichas · LED 3000K' },
+      { x: -1051, y: -172, w: 2088, h: 14, tipo: 'luz', etiqueta: 'Caja de luz 209 × 60 cm · arte Nueva Era 5000K (de 1,52 a 2,12 m)' },
+      { x: -720, y: -30, w: 1440, h: 190, tipo: 'zona', etiqueta: 'Mesón a 79,4 cm · 10 relojes con ficha acrílica' },
+      { x: -1010, y: -40, w: 230, h: 200, tipo: 'zona', etiqueta: 'Power ANC en soporte acrílico a cada lado' },
+      { x: 820, y: -40, w: 230, h: 200, tipo: 'zona', etiqueta: null },
+    ],
+    productos: [
+      { n: 'power-anc-negro', x: -873, y: 44, w: 150, nombre: 'Power ANC' },
+      { n: 'power-anc-negro', x: 937, y: 44, w: 150, nombre: 'Power ANC' },
+      { n: 'power-pro-2', x: -612, y: -53, w: 250, nombre: 'Power Pro 2' },
+      { n: 'power-pro-2', x: 694, y: -53, w: 250, nombre: 'Power Pro 2' },
+      ...[-361, -186, -18, 134].map((x) => ({ n: 'power-buds-2', x, y: -44, w: 75, nombre: 'Power Buds 2' })),
+      { n: 'power-go-2', x: 290, y: -53, w: 70, nombre: 'Power Go 2' },
+      { n: 'power-plus-2', x: 420, y: -53, w: 85, nombre: 'Power Plus 2' },
+      // los relojes van en el mesón, debajo del vuelo de la repisa: se dibujan encima para que se lean
+      ...[-618, -462, -330, -200, -61, 87, 227, 376, 519, 667].map((x, i) => ({ n: RELOJES_MURO[i], x, y: 18, w: 70, nombre: RELOJ[RELOJES_MURO[i]] })),
+    ],
+    frente: 'Frente: cuatro puertas push Capri · cabecera con logo platino de 64,5 cm y LED 3000K hacia abajo · lateral izquierdo e interior en Nácar',
   },
   kids: {
     titulo: 'Mueble Cubitt Jr & Teens',

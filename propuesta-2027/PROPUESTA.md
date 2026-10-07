@@ -49,6 +49,16 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - Logo platino de 9,4 cm al frente de la base Capri, bajo la línea LED.
 - Modelo 3D exacto: [`modelos/sobremesa-cubitt-2027.glb`](modelos/sobremesa-cubitt-2027.glb) (1,1 MB).
 
+### Bonus · Muro de exhibición — 220 × 248 × 49 cm (SketchUp «cuarto mueble mesa cubitt»)
+- Medidas leídas de [`artes-cubitt/originales/cuarto mueble mesa cubitt.skp`](artes-cubitt/originales/). Mueble de pared con toda la línea en un solo frente.
+- **Mesón**: cuerpo de 217 × 67,6 cm sobre zócalo con frente inox, cuatro puertas push Capri, gola rehundida de 5 cm y tope Duna de 18 mm a 79,4 cm.
+- **Repisa flotante** de 168 × 25 cm a 1,26 m con el mismo ADN del display: base Capri de 4 cm con esquinas redondas, línea de sombra con LED 3000K y tope Duna de 15 mm. Lleva el audio (dos Power Pro 2, cuatro Power Buds 2, Power Go 2 y Power Plus 2) con ocho fichas acrílicas.
+- **Caja de luz** de aluminio de **208,8 × 60 cm** (tela 206,7 × 56,8 cm), de 1,52 a 2,12 m, con el arte **Nueva Era** a la talla, sobre una espalda Capri.
+- **Cabecera** de 30 cm con el **logo platino** de 64,5 cm y halo 3000K (en el .skp quedó 6 cm corrido a la derecha; se centró) y cinta LED 3000K hacia abajo que ilumina el nicho.
+- Relojes: diez checkpoints sobre el mesón, cada uno con su ficha; un Power ANC en soporte acrílico a cada lado.
+- **Materiales**: Capri, Duna e inox, más melamina **Nácar** (madera clara, textura del .skp en [`assets/materiales/nacar.jpg`](assets/materiales/nacar.jpg)) en el lateral izquierdo y el interior del mesón. El lateral derecho viene en Capri: se respetó como está en el archivo y queda por confirmar si los dos laterales van iguales.
+- Modelo 3D exacto: [`modelos/muro-cubitt-2027.glb`](modelos/muro-cubitt-2027.glb) (1,9 MB). En la escena 3D va contra la pared lateral izquierda de la tienda.
+
 ### 04 · Mueble Cubitt Jr & Teens — 120 × 125 × 55 cm (nuevo)
 - **Mesón infantil a 60 cm** (alcance de niños de 4 a 10 años) y **mesón de padres a 90 cm**.
 - Caja de luz Cubitt Jr. entre 93 y 125 cm (altura de ojos de 8 a 10 años).
@@ -64,6 +74,7 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 | Display de sobremesa (se valida con el SketchUp de 50 × 32 × 25 cm) | $ 1.200.000 |
 | Composición modular (valor de la versión de tres módulos · se recotiza con dos módulos iguales) | $ 25.000.000 |
 | Mueble Cubitt Jr & Teens (estimado, por validar) | ≈ $ 9.000.000 |
+| Bonus · Muro de exhibición (220 × 248 × 49 cm) | Por cotizar |
 
 ## Correcciones aplicadas
 
@@ -82,6 +93,7 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - [x] Halo de contorno del logo en luz cálida **3000K**.
 - [x] Mesa de experiencia según el SketchUp «mesa cubitt»: 100 cm de frente, caja de luz de 84,9 × 58,1 cm, nueve relojes y todo el audio en el elevador; plano cenital y modelo 3D exacto.
 - [x] Mueble de exhibición según el SketchUp «mueble cubitt»: frente liso con logo, isotipo en los laterales y puertas atrás; módulo de 120 cm solo o en composición de dos.
+- [x] Bonus · Muro de exhibición según el SketchUp «cuarto mueble mesa cubitt»: escena 3D, plano cenital, modelo 3D exacto y renders v5.
 - [x] Display de sobremesa según el SketchUp «sobre mesa cubitt»: 50 × 32 × 25 cm, cinco relojes, caja de luz Nueva Era con espalda Capri e isotipo; plano cenital y modelo 3D exacto.
 - [x] Renders v5 de mesa, Touch & Try, lado vendedor, mueble, composición, display, logo, materiales y despiece en Blender Cycles (`tools/render_cycles.py`), directo de los SketchUp: medidas, texturas y materiales sin cambios, con los productos reales de Cubitt.
 
@@ -91,7 +103,7 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 - Renders v5 en [`renders/`](renders/) (1920 × 1200 + miniatura de 900 px): Blender Cycles con `tools/render_cycles.py` (`pip install bpy`), que importa los SketchUp vía `tools/skp_a_glb.py --sin-productos`, pone los materiales del proyecto y los productos reales de Cubitt en las posiciones del archivo. Se regeneran con `python tools/render_cycles.py todas`.
 - Renders v3/v4 Higgsfield (GPT Image 2.5 + `tools/componer_renders.py`): solo siguen los del mueble Cubitt Jr & Teens, enlazados en [`js/media.js`](js/media.js).
 - Artes a la talla de las cajas de la escena 3D: [`artes-cubitt/a-la-talla/`](artes-cubitt/a-la-talla/).
-- Modelos 3D de la mesa, del mueble (solo y × 2) y del display de sobremesa convertidos directo de los SketchUp (`tools/skp_lector.py` + `tools/skp_a_glb.py` + `npx gltfpack -cc`): [`modelos/`](modelos/).
+- Modelos 3D de la mesa, del mueble (solo y × 2), del display de sobremesa y del muro bonus convertidos directo de los SketchUp (`tools/skp_lector.py` + `tools/skp_a_glb.py` + `npx gltfpack -cc`): [`modelos/`](modelos/).
 - Isotipo platino recortado del logo oficial: [`assets/logo/isotipo-cubitt-platino.png`](assets/logo/isotipo-cubitt-platino.png) (`tools/preparar_isotipo.py`).
 - Modelo 3D Higgsfield del mueble Cubitt Jr & Teens (Tripo H3.1, 10,8 MB): enlace en [`js/media.js`](js/media.js).
 - Texturas Capri y Duna (Pelíkano): [`assets/materiales/`](assets/materiales/). Firma FARUK AGENCIA: [`assets/firma/`](assets/firma/) (`tools/preparar_firma.py`).
