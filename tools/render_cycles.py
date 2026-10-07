@@ -588,7 +588,7 @@ def toma(nombre, M):
         return 0.0
     if nombre in ('muro', 'muro-detalle'):
         if nombre == 'muro':
-            cam = camara((1.75, 1.45, 3.45), (0.0, 1.2, 0.0), lente=36)
+            cam = camara((2.05, 1.5, 4.3), (0.0, 1.27, 0.0), lente=34)
         else:
             cam = camara((0.8, 1.38, 1.15), (-0.1, 1.0, -0.02), lente=40, apertura=4.0, foco_gl=(0.1, 0.92, 0.07))
         importar('muro', M, artes={'modulo 1': 'nueva-era'})
