@@ -3,7 +3,7 @@
 Copia de la carpeta **ARTES CUBITT** entregada por FARUK AGENCIA (artes del mobiliario, fotos de producto, planos y archivos fuente).
 Las versiones optimizadas para la web están en `web/` y los recortes sin fondo en `productos/` (`python tools/preparar_artes.py`).
 
-Total: **92 archivos**.
+Total: **93 archivos**.
 
 | Archivo | Tipo | KB | Píxeles |
 |---|---|---:|---|
@@ -58,6 +58,7 @@ Total: **92 archivos**.
 | CTJR-PP4M_02.jpg | Foto de producto | 86 | 1000 × 1000 |
 | CTK-1-01.webp.jpeg | Foto de producto | 26 | 1000 × 1000 |
 | CTK-1-D-01.webp.jpeg | Foto de producto | 30 | 1000 × 1000 |
+| cuarto mueble mesa cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 11.490 |  |
 | Cubitt 2025 Kit 1000x1000 CT-PWGO2-7 1.jpg | Foto de producto | 320 | 1000 × 1000 |
 | Cubitt 2025 Kit 1000x1000 CT-PWPLUS2-1 1.jpg | Foto de producto | 184 | 1000 × 1000 |
 | Cubitt Terra 30.5x92 cm.jpg | Arte / valla | 376 | 1010 × 3020 |

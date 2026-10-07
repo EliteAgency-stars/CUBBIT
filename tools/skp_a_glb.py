@@ -8,12 +8,14 @@
   el logo completo (assets/logo/logo-cubitt-platino.png) y el isotipo recortado de ese mismo archivo
   (assets/logo/isotipo-cubitt-platino.png, tools/preparar_isotipo.py).
 
-Uso: python tools/skp_a_glb.py archivo.skp salida.glb [mesa|mueble|mueble2|sobremesa] [--sin-productos] [--productos lista.json]
+Uso: python tools/skp_a_glb.py archivo.skp salida.glb [mesa|mueble|mueble2|sobremesa|muro] [--sin-productos] [--productos lista.json]
      mesa      -> mesa de experiencia de 100 cm (artes-cubitt/originales/mesa cubitt.skp)
      mueble    -> mueble de exhibición de 120 cm (artes-cubitt/originales/mueble cubitt.skp)
      mueble2   -> dos muebles iguales lado a lado (240 cm): mallas compartidas, logo al frente de cada módulo e
                   isotipo solo en los laterales exteriores
      sobremesa -> display de sobremesa de 50 cm (artes-cubitt/originales/sobre mesa cubitt.skp)
+     muro      -> bonus: muro de exhibición de 220 cm (artes-cubitt/originales/cuarto mueble mesa cubitt.skp), con melamina
+                  Nácar (textura del .skp, assets/materiales/nacar.jpg) en el lateral izquierdo y el interior del mesón
      --sin-productos  deja fuera los relojes y el audio de referencia del .skp (los renders ponen los productos reales)
      --productos      guarda en JSON cada producto del .skp (grupo, centro y tamaño en m) para ubicar los reales
 Después se comprime con meshopt: npx gltfpack -i salida.glb -o salida.glb -cc
@@ -39,6 +41,7 @@ LOGO = os.path.join(RAIZ, 'assets', 'logo', 'logo-cubitt-platino.png')
 ISOTIPO = os.path.join(RAIZ, 'assets', 'logo', 'isotipo-cubitt-platino.png')
 CAPRI = os.path.join(RAIZ, 'assets', 'materiales', 'capri.jpg')
 DUNA = os.path.join(RAIZ, 'assets', 'materiales', 'duna.jpg')
+NACAR = os.path.join(RAIZ, 'assets', 'materiales', 'nacar.jpg')
 
 
 # Cada pieza: centro de su planta en el .skp (x, y en cm), material y arte de la caja de luz, grupos del .skp que son
@@ -66,9 +69,35 @@ PIEZAS = {
                   'logos': [('logo', (0, 0, 1), (0.0, 0.0199, 0.125), 0.0944),
                             ('isotipo', (0, 0, -1), (0.0, 0.193, -0.1106), 0.0902)],
                   'led': (-0.24, 0.24, -0.115, 0.115, 0.0475)},
+    # Bonus · 220 × 248 × 49 cm: mesón con cuatro puertas y tope Duna, repisa flotante (base Capri, línea de sombra con LED
+    # y tope Duna) a 1,26 m con el audio, caja de luz de 208,8 × 60 cm (tela 206,7 × 56,8 cm), cabecera de 30 cm con LED
+    # hacia abajo y el logo de 64,5 cm (en el .skp quedó 6 cm corrido a la derecha y se centra)
+    'muro': {'origen': (25.26, 110.0), 'arte_mat': '_4', 'arte': 'nueva-era',
+             'aluminio': ('Grupo#36',), 'sombra': ('Grupo#19',), 'logo_skp': ('Grupo#12',),
+             'estructura': ('Grupo#19', 'Grupo#83', 'Grupo#85', 'Grupo#60', 'Grupo#49'),
+             'logos': [('logo', (0, 0, 1), (0.0, 2.3645, 0.2382), 0.645)],
+             'led': [(-0.7867, 0.8287, -0.1499, 0.0801, 1.2364)]},
 }
 ORIGEN = PIEZAS['mesa']['origen']
 BLANCO_A_CAPRI = ('Lisanne_Caulk',)  # lámina blanca del .skp -> Capri
+NACAR_SKP = 'color madera mueble ceramic'  # melamina Nácar del .skp del muro (textura Nacar.jpg)
+
+
+def tipo_producto(m, d):
+    """Qué producto de referencia es un grupo del .skp, por los componentes que trae adentro."""
+    nombres, pila = set(), [d]
+    while pila:
+        for inst in pila.pop()[4]:
+            sub = m.defs.get(inst['ref'])
+            if sub and sub[0] not in nombres:
+                nombres.add(sub[0])
+                pila.append(sub)
+    texto = ' '.join(nombres)
+    for clave, tipo in (('Beats', 'audifonos'), ('Designed by Appl', 'buds'), ('POLK', 'parlante-grande'),
+                        ('Grupo#82', 'parlante-alto'), ('Grupo#88', 'parlante-pequeno'), ('Grupo#23', 'reloj')):
+        if clave in texto:
+            return tipo
+    return 'otro'
 
 
 def a_gltf(p_cm):
@@ -215,7 +244,7 @@ def main():
     global ORIGEN
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     skp, salida = args[0], args[1]
-    modo = args[2] if len(args) > 2 and args[2] in ('mesa', 'mueble', 'mueble2', 'sobremesa') else 'mesa'
+    modo = args[2] if len(args) > 2 and args[2] in ('mesa', 'mueble', 'mueble2', 'sobremesa', 'muro') else 'mesa'
     sin_productos = '--sin-productos' in sys.argv
     json_productos = sys.argv[sys.argv.index('--productos') + 1] if '--productos' in sys.argv else None
     pieza = PIEZAS['mueble' if modo == 'mueble2' else modo]
@@ -231,9 +260,9 @@ def main():
             continue
         tri = [(('MODELO',) + t[0],) + t[1:] for t in m.triangulos(d, matriz(inst['t']), inst['mat'])]
         # producto de referencia: grupo con componentes adentro que no es caja de luz ni logo (relojes, audífonos, bafles)
-        if d[4] and d[0] not in pieza['aluminio'] + pieza['logo_skp'] and tri:
+        if d[4] and d[0] not in pieza['aluminio'] + pieza['logo_skp'] + pieza.get('estructura', ()) and tri:
             p = a_gltf(np.concatenate([t[3] for t in tri]) * CM)
-            productos.append({'grupo': d[0], 'centro': ((p.min(0) + p.max(0)) / 2).round(4).tolist(),
+            productos.append({'grupo': d[0], 'tipo': tipo_producto(m, d), 'centro': ((p.min(0) + p.max(0)) / 2).round(4).tolist(),
                               'tamano': np.ptp(p, 0).round(4).tolist(), 'base': round(float(p[:, 1].min()), 4)})
             if sin_productos:
                 continue
@@ -248,6 +277,7 @@ def main():
     # zona limpia de la muestra Capri (la foto trae el rótulo «CAPRI · textura mate» y una línea abajo a la derecha)
     t_capri = c.textura(Image.open(CAPRI).convert('RGB').crop((0, 0, 600, 480)).resize((512, 410)), sampler=1)
     t_duna = c.textura(Image.open(DUNA).convert('RGB'), sampler=1)
+    t_nacar = c.textura(Image.open(NACAR).convert('RGB'), sampler=1) if NACAR_SKP in nombres.values() else None
     es_arte = lambda t: (nombres.get(t[1]) == pieza['arte_mat'] or nombres.get(t[6]) == pieza['arte_mat']) and not any(r in pieza['logo_skp'] for r in t[0][1:])
     p_arte = a_gltf(np.concatenate([t[3] for t in caras if es_arte(t)]) * CM)
     ancho_arte = np.ptp(p_arte[:, 0])
@@ -271,6 +301,8 @@ def main():
         'led': c.material('LED 3000K', (1, 0.76, 0.49, 1), emisivo=(1.0, 0.70, 0.42), sin_luz=True),
         'vidrio': c.material('Acrílico', (0.92, 0.94, 0.95, 0.28), rugosidad=0.05, mezcla='BLEND'),
     }
+    if t_nacar is not None:
+        M['nacar'] = c.material('Nácar', tex=t_nacar, rugosidad=0.6)
     for clave in t_logo:
         M[f'logo:{clave}'] = c.material(f'Platino · {clave}', (0.92, 0.91, 0.88, 1), metal=0.75, rugosidad=0.3,
                                         tex=t_logo[clave], mezcla='MASK')
@@ -286,6 +318,12 @@ def main():
             return 'duna'
         if nombre_skp == 'C02_Golden_Beige' or nombre_skp in BLANCO_A_CAPRI:
             return 'capri'
+        if nombre_skp == NACAR_SKP:
+            return 'nacar'
+        if nombre_skp == 'B01_Ivory_Dust':  # cinta bajo la cabecera del muro
+            return 'led'
+        if nombre_skp == 'M01_Silver_Fog':  # perfil de la cabecera del muro
+            return 'aluminio'
         if grupo in pieza['aluminio']:
             return 'aluminio'
         if nombre_skp == 'Metal_06_1K':
@@ -334,7 +372,7 @@ def main():
         if clave == 'arte':
             uv = np.stack([(p[:, 0] - p_arte[:, 0].min()) / ancho_arte, (p_arte[:, 1].max() - p[:, 1]) / alto_arte], 1)
         else:
-            uv = uv_caja(p, n, {'capri': 0.6, 'duna': 0.7}.get(clave, 0.35), veta=clave == 'duna')
+            uv = uv_caja(p, n, {'capri': 0.6, 'duna': 0.7, 'nacar': 0.8}.get(clave, 0.35), veta=clave == 'duna')
         L['pos'].append(p)
         L['nor'].append(np.repeat(n[None], len(p), 0))
         L['uv'].append(uv)
@@ -348,14 +386,14 @@ def main():
             c.otra_malla(mi, arte_2, 'arte-modulo-2', modulos[1:])
 
     # ---- LED 3000K continuo en la línea de sombra (bajo el tope, a 1 mm del canto rehundido)
-    x0, x1, z0, z1, y_led = pieza['led']
-    h = min(0.004, y_led * 0.08)
-    for z in (z0 - 0.001, z1 + 0.001):
-        pos = np.array([[x0, y_led - h, z], [x1, y_led - h, z], [x1, y_led + h, z], [x0, y_led + h, z]])
-        c.malla('led', pos, np.repeat([[0, 0, np.sign(z)]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
-    for x in (x0 - 0.001, x1 + 0.001):
-        pos = np.array([[x, y_led - h, z0], [x, y_led - h, z1], [x, y_led + h, z1], [x, y_led + h, z0]])
-        c.malla('led', pos, np.repeat([[np.sign(x), 0, 0]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
+    for x0, x1, z0, z1, y_led in (pieza['led'] if isinstance(pieza['led'], list) else [pieza['led']]):
+        h = min(0.004, y_led * 0.08)
+        for z in (z0 - 0.001, z1 + 0.001):
+            pos = np.array([[x0, y_led - h, z], [x1, y_led - h, z], [x1, y_led + h, z], [x0, y_led + h, z]])
+            c.malla('led', pos, np.repeat([[0, 0, np.sign(z - (z0 + z1) / 2)]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
+        for x in (x0 - 0.001, x1 + 0.001):
+            pos = np.array([[x, y_led - h, z0], [x, y_led - h, z1], [x, y_led + h, z1], [x, y_led + h, z0]])
+            c.malla('led', pos, np.repeat([[np.sign(x - (x0 + x1) / 2), 0, 0]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
 
     # ---- logos oficiales donde estaban los del .skp; en composición, los de los laterales solo en los exteriores
     for clave, normal, centro, ancho in pieza['logos']:

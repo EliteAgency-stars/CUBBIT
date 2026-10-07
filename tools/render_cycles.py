@@ -7,7 +7,7 @@ halo 3000K. Los relojes y el audio de referencia del .skp se cambian por los pro
 artes-cubitt/productos/) en las mismas posiciones del archivo.
 
 Uso: python tools/render_cycles.py <toma[,toma...]|todas> [--muestras 160] [--ancho 1920] [--salida propuesta-2027/renders]
-Tomas: familia, mesa, touch, vendedor, mueble, modular, sobremesa, logo, material, despiece
+Tomas: familia, mesa, touch, vendedor, mueble, modular, sobremesa, logo, material, despiece, muro, muro-detalle
 Salida: <toma>.jpg (1920 × 1200) y <toma>-900.jpg (miniatura) en la carpeta de salida.
 Requiere bpy (pip install bpy), numpy y Pillow, más lo que pide tools/skp_a_glb.py.
 """
@@ -37,7 +37,7 @@ CACHE = os.path.join(tempfile.gettempdir(), 'cubitt-render')
 
 PIEZAS = {  # modelo de skp_a_glb.py -> archivo SketchUp
     'mesa': 'mesa cubitt.skp', 'mueble': 'mueble cubitt.skp', 'mueble2': 'mueble cubitt.skp',
-    'sobremesa': 'sobre mesa cubitt.skp',
+    'sobremesa': 'sobre mesa cubitt.skp', 'muro': 'cuarto mueble mesa cubitt.skp',
 }
 K3000, K4000, K5000 = (1.0, 0.71, 0.42), (1.0, 0.83, 0.66), (1.0, 0.90, 0.82)
 
@@ -48,10 +48,15 @@ RELOJES = {
     'mueble2': ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2',
                 'terra-verde', 'aura-pro-2', 'aura-2-azul', 'viva-lite-lilac', 'viva-2-rosado', 'viva-pro-2', 'terra-verde', 'viva-pro-2'],
     'sobremesa': ['viva-2-rosado', 'viva-pro-2', 'aura-2-azul', 'terra-verde', 'aura-pro-2'],
+    'muro': ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2',
+             'terra-verde', 'viva-2-rosado'],
 }
-RELOJ_SKP = ('Grupo#54', 'Grupo#55', 'Grupo#6', 'Grupo#93')
-AUDIO = {'Grupo#7': ('power-anc-negro', 0.20), 'Grupo#92': ('power-buds-2', 0.072), 'Grupo#100': ('power-pro-2', 0.13),
-         'Grupo#84': ('power-plus-2', 0.20), 'Grupo#89': (('power-go-2', 0.09), ('power-mini', 0.087))}
+# Audio por tipo de producto de referencia del .skp (tools/skp_a_glb.py lo detecta por sus componentes)
+AUDIO = {'audifonos': ('power-anc-negro', 0.20), 'buds': ('power-buds-2', 0.072), 'parlante-grande': ('power-pro-2', 0.13),
+         'parlante-alto': ('power-plus-2', 0.20), 'parlante-pequeno': (('power-go-2', 0.09), ('power-mini', 0.087))}
+# Ajustes por pieza. El muro trae sus propios soportes acrílicos de audífonos y, en el .skp, los productos del mesón quedaron
+# 1,8 cm por encima del tope Duna (79,4 cm): en el render se apoyan sobre el tope y cada reloj lleva su ficha acrílica.
+OPCIONES = {'muro': {'soporte_audifonos': False, 'bajar': 0.018, 'fichas': True}}
 
 
 def gl(x, y, z):
@@ -216,6 +221,7 @@ class Materiales:
     def __init__(self):
         self.capri = mat_textura('Capri', os.path.join(MAT, 'capri.jpg'), 0.62, 0.35, recorte=(0, 0, 600, 480))
         self.duna = mat_textura('Duna', os.path.join(MAT, 'duna.jpg'), 0.42, 0.5, capa=0.12)
+        self.nacar = mat_textura('Nacar', os.path.join(MAT, 'nacar.jpg'), 0.45, 0.45, capa=0.08)
         self.inox = mat_color('Inox', (0.86, 0.86, 0.87), 0.2, 1.0, aniso=0.6)
         self.aluminio = mat_color('Aluminio', (0.84, 0.83, 0.81), 0.28, 1.0, aniso=0.3)
         self.sombra = mat_color('Sombra', (0.30, 0.27, 0.24), 0.9)
@@ -289,6 +295,8 @@ def importar(modo, M, ubicacion=(0, 0, 0), fuerza_arte=1.6, artes=None):
                 nuevo = M.capri
             elif n.startswith('Duna'):
                 nuevo = M.duna
+            elif n.startswith('Nácar'):
+                nuevo = M.nacar
             elif n.startswith('Inox'):
                 nuevo = M.inox
             elif n.startswith('Aluminio'):
@@ -315,6 +323,13 @@ def importar(modo, M, ubicacion=(0, 0, 0), fuerza_arte=1.6, artes=None):
                 nuevo = M.blanco
             nuevo['proyecto'] = True
             slot.material = nuevo
+    bajar = OPCIONES.get(modo, {}).get('bajar')
+    if bajar:  # fichas y soportes acrílicos del mesón, que en el .skp flotan sobre el tope
+        for o in nuevos:
+            if o.type == 'MESH' and o.material_slots and o.material_slots[0].material.name == 'Acrilico':
+                for v in o.data.vertices:
+                    if v.co.z < 1.0:
+                        v.co.z -= bajar
     return raiz, nuevos
 
 
@@ -355,8 +370,13 @@ def cilindro(r, h, ubicacion, mat, nombre):
 def poner_productos(modo, ubicacion, M, camara, cache, desplazar=(0, 0, 0)):
     """Productos reales de Cubitt donde el .skp tenía los de referencia: relojes en checkpoint y audio sobre el elevador."""
     objetos = []
+    opc = OPCIONES.get(modo, {})
     lista = productos_de(modo)
-    relojes = sorted([q for q in lista if q['grupo'] in RELOJ_SKP], key=lambda q: (round(q['centro'][2], 2), q['centro'][0]))
+    for q in lista:  # productos del mesón apoyados sobre el tope
+        if opc.get('bajar') and q['base'] < 1.0:
+            q['base'] -= opc['bajar']
+            q['centro'][1] -= opc['bajar']
+    relojes = sorted([q for q in lista if q['tipo'] == 'reloj'], key=lambda q: (round(q['centro'][2], 2), q['centro'][0]))
     # filas de adelante hacia atrás; en cada fila de izquierda a derecha (el display tiene dos filas)
     filas = {}
     for q in relojes:
@@ -373,9 +393,15 @@ def poner_productos(modo, ubicacion, M, camara, cache, desplazar=(0, 0, 0)):
         objetos.append(cilindro(0.0055, 0.034, b + Vector((0, 0, 0.008)), M.checkpoint, f'poste-{i}'))
         foto = os.path.join(PROD, f'{nombres[i % len(nombres)]}.png')
         objetos.append(plano_foto(f'reloj-{i}', foto, 0.072, b + Vector((0, 0, 0.025 + 0.036)), camara, cache, adelante=0.012))
+        if opc.get('fichas'):
+            bpy.ops.mesh.primitive_cube_add(size=1, location=gl(x, base + 0.002, z + 0.072))
+            ficha = bpy.context.object
+            ficha.scale = (0.08, 0.05, 0.004)
+            ficha.data.materials.append(M.acrilico)
+            objetos.append(ficha)
     vistos = {}
-    for q in sorted([q for q in lista if q['grupo'] in AUDIO], key=lambda q: q['centro'][0]):
-        info = AUDIO[q['grupo']]
+    for q in sorted([q for q in lista if q['tipo'] in AUDIO], key=lambda q: q['centro'][0]):
+        info = AUDIO[q['tipo']]
         if isinstance(info[0], tuple):  # dos parlantes pequeños: el de la izquierda Power Go 2, el otro Power Mini
             k = vistos.get((q['grupo'], round(q['centro'][0] + ox, 1) // 1.2), 0)
             vistos[(q['grupo'], round(q['centro'][0] + ox, 1) // 1.2)] = k + 1
@@ -383,7 +409,9 @@ def poner_productos(modo, ubicacion, M, camara, cache, desplazar=(0, 0, 0)):
         nombre, alto = info
         x, base, z = q['centro'][0] + ox, q['base'] + oy, q['centro'][2] + oz
         b = gl(x, base, z)
-        if nombre == 'power-anc-negro':  # soporte de audífonos en aluminio
+        if nombre == 'power-anc-negro' and not opc.get('soporte_audifonos', True):  # cuelga del soporte acrílico del .skp
+            objetos.append(plano_foto(nombre, os.path.join(PROD, f'{nombre}.png'), alto, gl(x, q['centro'][1], z), camara, cache, adelante=0.03))
+        elif nombre == 'power-anc-negro':  # soporte de audífonos en aluminio
             objetos.append(cilindro(0.035, 0.006, b, M.aluminio, 'soporte-base'))
             objetos.append(cilindro(0.005, 0.17, b + Vector((0, 0.01, 0.006)), M.aluminio, 'soporte-poste'))
             objetos.append(plano_foto(nombre, os.path.join(PROD, f'{nombre}.png'), alto, b + Vector((0, 0, 0.02 + alto / 2)), camara, cache, adelante=0.016))
@@ -558,6 +586,16 @@ def toma(nombre, M):
         tienda(muros=[(0, 1.6, 0, 10)], mostrador=(0, 0.0, 1.4, 0.65, 0.9))
         luces((0.3, -0.5, 3.0), 0.9, [((0.8, -1.0, 2.6), (0, 0, 0.95), 160)])
         return 0.0
+    if nombre in ('muro', 'muro-detalle'):
+        if nombre == 'muro':
+            cam = camara((1.75, 1.45, 3.45), (0.0, 1.2, 0.0), lente=36)
+        else:
+            cam = camara((0.8, 1.38, 1.15), (-0.1, 1.0, -0.02), lente=40, apertura=4.0, foco_gl=(0.1, 0.92, 0.07))
+        importar('muro', M, artes={'modulo 1': 'nueva-era'})
+        poner_productos('muro', (0, 0, 0), M, cam.location, cache)
+        tienda(muros=[(0, 0.245, 0, 12), (-2.6, 0, math.pi / 2, 10)])
+        luces((0.4, -1.2, 3.1), 1.0, [((1.2, -1.8, 3.0), (0, 0, 1.0), 260), ((-1.2, -1.8, 3.0), (0, 0, 1.2), 200)])
+        return 0.0
     raise SystemExit(f'toma desconocida: {nombre}')
 
 
@@ -629,7 +667,7 @@ def main():
     opt = lambda k, d: type(d)(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     muestras, ancho = opt('--muestras', 160), opt('--ancho', 1920)
     salida = opt('--salida', os.path.join(RAIZ, 'renders'))
-    tomas = ['familia', 'mesa', 'touch', 'vendedor', 'mueble', 'modular', 'sobremesa', 'logo', 'material', 'despiece']
+    tomas = ['familia', 'mesa', 'touch', 'vendedor', 'mueble', 'modular', 'sobremesa', 'logo', 'material', 'despiece', 'muro', 'muro-detalle']
     pedidas = tomas if not args or args[0] == 'todas' else args[0].split(',')
     preparar_modelos()
     os.makedirs(salida, exist_ok=True)
