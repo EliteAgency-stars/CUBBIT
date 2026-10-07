@@ -534,7 +534,7 @@ def toma(nombre, M):
         if nombre == 'despiece':
             despiece(objs, prods)
             # números de los cinco pasos de «Se arma en cinco pasos» (index.html), junto a cada capa
-            ETIQUETAS[:] = [(1, (0.5, 0.03, 0.25)), (2, (0.5, 0.55, 0.25)), (3, (-0.42, 0.62, 0.6)),
+            ETIQUETAS[:] = [(1, (0.5, 0.03, 0.25)), (2, (0.5, 0.55, 0.25)), (3, (-0.5, 0.95, 0.6)),
                             (4, (0.5, 1.29, 0.25)), (5, (0.46, 1.5, -0.14))]
         if nombre == 'vendedor':
             tienda(muros=[(0, -2.4, 0, 16), (-3.0, 0, math.pi / 2, 10)])
@@ -592,7 +592,7 @@ def despiece(objs, prods):
         if o.type != 'MESH' or not o.material_slots:
             continue
         n = o.material_slots[0].material.name
-        dz = {'Inox': 0.0, 'Sombra': 0.36, 'LED 3000K': 0.36, 'Acrilico': 0.8, 'Duna': 0.0}.get(n, 0.18)
+        dz = {'Inox': 0.0, 'Sombra': 0.36, 'LED 3000K': 0.36, 'Acrilico': 0.8, 'Duna': 0.0, 'Plastico blanco': 0.68}.get(n, 0.18)
         dy = 0
         if n.startswith('Tela') or n == 'Aluminio':
             dy = -0.35
