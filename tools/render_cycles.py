@@ -523,7 +523,7 @@ def toma(nombre, M):
         vistas = {
             'mesa': dict(pos=(1.45, 1.3, 1.95), obj=(0.0, 0.52, 0.0), lente=46),
             'touch': dict(pos=(-0.42, 1.18, 0.95), obj=(0.04, 0.84, -0.02), lente=50, apertura=4.0, foco=(0.0, 0.85, 0.1)),
-            'vendedor': dict(pos=(-1.2, 1.3, -1.55), obj=(0.0, 0.5, -0.05), lente=45),
+            'vendedor': dict(pos=(-1.45, 1.38, -1.85), obj=(0.0, 0.55, -0.05), lente=42),
             'logo': dict(pos=(1.2, 0.55, 0.55), obj=(0.5, 0.42, -0.03), lente=55, apertura=5.6, foco=(0.5, 0.4, 0.0)),
             'material': dict(pos=(0.92, 0.98, 0.78), obj=(0.44, 0.64, 0.18), lente=45, apertura=5.6, foco=(0.5, 0.77, 0.25)),
             'despiece': dict(pos=(2.5, 1.7, 2.95), obj=(0.0, 0.88, 0.0), lente=40),
@@ -544,8 +544,8 @@ def toma(nombre, M):
         return {'logo': -0.2, 'despiece': 0.1}.get(nombre, 0.0)
     if nombre in ('mueble', 'modular'):
         modo = 'mueble' if nombre == 'mueble' else 'mueble2'
-        cam = camara(*(((1.25, 1.45, 2.05), (0.0, 0.92, -0.1)) if nombre == 'mueble' else ((1.75, 1.6, 2.95), (0.12, 0.92, -0.1))),
-                     lente=40 if nombre == 'mueble' else 35)
+        cam = camara(*(((1.4, 1.4, 2.45), (0.0, 0.8, -0.1)) if nombre == 'mueble' else ((1.75, 1.6, 2.95), (0.12, 0.92, -0.1))),
+                     lente=38 if nombre == 'mueble' else 35)
         importar(modo, M, artes=ARTES_MUEBLE if modo == 'mueble' else ARTES_MUEBLE2)
         poner_productos(modo, (0, 0, 0), M, cam.location, cache)
         tienda(muros=[(0, 0.215, 0, 12)])
