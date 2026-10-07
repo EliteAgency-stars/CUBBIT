@@ -5,6 +5,7 @@ const P = (n) => `propuesta-2027/artes-cubitt/productos/${n}.png`;
 // Módulo del mueble de exhibición (centrado en dx): caja de luz, elevador Duna y relojes al frente.
 const RELOJ = { 'viva-pro-2': 'Viva Pro 2', 'viva-2-rosado': 'Viva 2', 'viva-lite-lilac': 'Viva Lite', 'aura-2-azul': 'Aura 2',
   'aura-pro-2': 'Aura Pro 2', 'terra-verde': 'Terra' };
+const RELOJES_MESA = ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2', 'terra-verde'];
 const MUEBLE_ZONAS = (dx, etiquetas = true) => [
   { x: dx - 600, y: -184, w: 1200, h: 16, tipo: 'luz', etiqueta: 'Caja de luz trasera 120 × 65 cm · arte 5000K' },
   { x: dx - 572, y: -158, w: 1124, h: 140, tipo: 'duna', etiqueta: 'Elevador Duna · 112 × 14 × 5 cm · audio' },
@@ -14,7 +15,7 @@ const MUEBLE_PRODUCTOS = (dx, relojes) => [
   ...[-530, -400, -261, -110, 35, 165, 304, 455].map((x, i) => ({ n: relojes[i], x: dx + x, y: 72, w: 70, nombre: RELOJ[relojes[i]] })),
   { n: 'power-anc-negro', x: dx - 444, y: -67, w: 150, nombre: 'Power ANC' },
   { n: 'power-buds-2', x: dx - 281, y: -105, w: 70, nombre: 'Power Buds 2' },
-  { n: 'power-pro-2', x: dx + 29, y: -100, w: 230, nombre: 'Power Pro 2' },
+  { n: 'power-pro-2', x: dx - 20, y: -100, w: 230, nombre: 'Power Pro 2' },
   { n: 'power-plus-2', x: dx + 211, y: -80, w: 85, nombre: 'Power Plus 2' },
   { n: 'power-go-2', x: dx + 352, y: -80, w: 70, nombre: 'Power Go 2' },
   { n: 'power-mini', x: dx + 463, y: -80, w: 65, nombre: 'Power Mini' },
@@ -22,36 +23,32 @@ const MUEBLE_PRODUCTOS = (dx, relojes) => [
 
 export const PLANOS = {
   mesa: {
-    // Medidas y posiciones tomadas del SketchUp «primer mueble mesa cubitt» (tope Duna con esquinas R40).
+    // Medidas y posiciones tomadas del SketchUp «mesa cubitt» (100 × 50 cm, tope Duna con esquinas R40).
     titulo: 'Mesa de experiencia',
-    ancho: 800, fondo: 500, radio: 40,
+    ancho: 1000, fondo: 500, radio: 40,
     zonas: [
-      { x: -358, y: -209, w: 727, h: 140, tipo: 'duna', etiqueta: 'Elevador en madera Duna · 72,7 × 14 × 5 cm · bafles' },
-      { x: -372, y: -40, w: 150, h: 125, tipo: 'zona', etiqueta: 'Audífonos in-ear + ficha acrílica' },
-      { x: 222, y: -50, w: 150, h: 135, tipo: 'zona', etiqueta: 'Audífonos de diadema en soporte + ficha acrílica' },
-      { x: -272, y: 95, w: 520, h: 145, tipo: 'zona', etiqueta: 'Relojes · 4 checkpoints con ficha acrílica al frente' },
+      { x: -448, y: -240, w: 910, h: 188, tipo: 'duna', etiqueta: 'Elevador en madera Duna · 91 × 18,8 × 5 cm · audio y 5 fichas acrílicas' },
+      { x: -478, y: 72, w: 952, h: 150, tipo: 'zona', etiqueta: 'Relojes · 9 checkpoints con ficha acrílica al frente' },
     ],
     productos: [
-      { n: 'power-pro-2', x: -197, y: -128, w: 230, nombre: 'Power Pro 2' },
-      { n: 'power-plus-2', x: 35, y: -149, w: 90, nombre: 'Power Plus 2' },
-      { n: 'power-go-2', x: 175, y: -149, w: 75, nombre: 'Power Go 2' },
-      { n: 'power-mini', x: 287, y: -149, w: 70, nombre: 'Power Mini' },
-      { n: 'power-buds-2', x: -277, y: 34, w: 80, nombre: 'Power Buds 2' },
-      { n: 'power-anc-negro', x: 277, y: 52, w: 150, nombre: 'Power ANC' },
-      ...['viva-pro-2', 'viva-2-rosado', 'aura-pro-2', 'terra-verde'].map((n, i) => ({
-        n, x: [-217, -87, 53, 204][i], y: 145, w: 70,
-        nombre: ['Viva Pro 2', 'Viva 2', 'Aura Pro 2', 'Terra'][i],
+      { n: 'power-buds-2', x: -353, y: -121, w: 80, nombre: 'Power Buds 2' },
+      { n: 'power-pro-2', x: -117, y: -117, w: 250, nombre: 'Power Pro 2' },
+      { n: 'power-plus-2', x: 92, y: -124, w: 90, nombre: 'Power Plus 2' },
+      { n: 'power-go-2', x: 223, y: -121, w: 75, nombre: 'Power Go 2' },
+      { n: 'power-anc-negro', x: 386, y: -127, w: 150, nombre: 'Power ANC' },
+      ...[-437, -324, -216, -110, 1, 110, 215, 320, 431].map((x, i) => ({
+        n: RELOJES_MESA[i], x, y: 104, w: 70, nombre: RELOJ[RELOJES_MESA[i]],
       })),
     ],
-    frente: 'Frente: caja de luz 66 × 56 cm (Viva Pro 2) · laterales: logo platino 3000K · atrás: dos puertas push',
+    frente: 'Frente: caja de luz 85 × 58 cm (Viva Pro 2) · laterales: logo platino 3000K · atrás: dos puertas push',
   },
   mueble: {
-    // Medidas y posiciones del SketchUp «segundo mueble mesa cubitt»: módulo de 120 cm que se une lado a lado.
+    // Medidas y posiciones del SketchUp «mueble cubitt»: módulo de 120 cm que se une lado a lado.
     titulo: 'Mueble de exhibición',
     ancho: 1200, fondo: 400, radio: 40,
     zonas: MUEBLE_ZONAS(0),
     productos: MUEBLE_PRODUCTOS(0, ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2']),
-    frente: 'Frente: tres puertas push con gola · laterales: logo platino 3000K · caja de luz trasera 120 × 65 cm',
+    frente: 'Frente liso con logo platino 3000K · laterales: isotipo platino · caja de luz trasera 120 × 65 cm · atrás: dos puertas push',
   },
   modular: {
     titulo: 'Composición de dos muebles',
@@ -61,19 +58,19 @@ export const PLANOS = {
       ...MUEBLE_PRODUCTOS(-600, ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac', 'aura-2-azul', 'aura-pro-2', 'terra-verde', 'viva-pro-2', 'aura-pro-2']),
       ...MUEBLE_PRODUCTOS(600, ['terra-verde', 'aura-pro-2', 'aura-2-azul', 'viva-lite-lilac', 'viva-2-rosado', 'viva-pro-2', 'terra-verde', 'viva-pro-2']),
     ],
-    frente: 'Dos módulos iguales lado a lado (240 cm) · cajas de luz Nueva Era y Viva Pro 2 · logo solo en los laterales exteriores',
+    frente: 'Dos módulos iguales lado a lado (240 cm) · cajas de luz Nueva Era y Viva Pro 2 · logo al frente de cada módulo · isotipo solo en los laterales exteriores',
   },
   sobremesa: {
+    // Medidas y posiciones del SketchUp «sobre mesa cubitt»: 50 × 32 × 25 cm, cinco relojes en dos filas.
     titulo: 'Display de sobremesa',
-    ancho: 500, fondo: 250, radio: 20,
+    ancho: 500, fondo: 250, radio: 33,
     zonas: [
-      { x: -240, y: -125, w: 480, h: 35, tipo: 'luz', etiqueta: 'Caja de luz · arte Viva Pro 2' },
-      { x: -230, y: 105, w: 460, h: 18, tipo: 'inox', etiqueta: 'Riel de precio' },
+      { x: -250, y: -112, w: 500, h: 14, tipo: 'luz', etiqueta: 'Caja de luz 50 × 25 cm · arte Nueva Era 5000K' },
+      { x: -225, y: -45, w: 450, h: 150, tipo: 'zona', etiqueta: 'Relojes · 5 checkpoints en dos filas, cada uno con ficha acrílica' },
     ],
-    productos: ['viva-pro-2', 'viva-2-rosado', 'viva-lite-lilac'].map((n, i) => ({
-      n, x: -150 + i * 150, y: 20, w: 70, nombre: ['Viva Pro 2', 'Viva 2', 'Viva Lite'][i],
-    })),
-    frente: 'Frente: logo platino en la base Capri · 3 checkpoints integrados en la madera',
+    productos: [['viva-2-rosado', -183, 26], ['viva-pro-2', 9, 26], ['aura-2-azul', 173, 26], ['terra-verde', -84, -66], ['aura-pro-2', 94, -66]]
+      .map(([n, x, y]) => ({ n, x, y, w: 60, nombre: RELOJ[n] })),
+    frente: 'Frente: logo platino en la base Capri · espalda de la caja de luz: isotipo platino · línea LED 3000K bajo el tope Duna',
   },
   kids: {
     titulo: 'Mueble Cubitt Jr & Teens',
