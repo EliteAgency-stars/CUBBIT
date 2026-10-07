@@ -1,16 +1,22 @@
 """Convierte los muebles de SketchUp (.skp) de FARUK AGENCIA a GLB para la web, con la geometría exacta del archivo.
 
 - Ejes: SketchUp (x fondo, y ancho, z arriba, pulgadas) -> glTF (X derecha, Y arriba, Z hacia el cliente, metros).
-- Materiales del proyecto: Capri (cuerpo), Duna (tope y elevador), inox (zócalo), aluminio (marco),
-  caja de luz con el arte a la talla (tools/artes_a_la_talla.py) y LED 3000K en la línea de sombra.
-- El logo que venía modelado en el .skp se reemplaza por el archivo oficial en platino, con halo cálido 3000K.
-- Los relojes que en el archivo quedaron flotando delante de la mesa ya vienen corregidos en el .skp leído
-  (la matriz de cada grupo se lee por filas).
+- Materiales del proyecto: Capri (cuerpo), Duna (tope y elevador), inox (zócalo), aluminio (marco de la caja de luz y
+  postes), caja de luz con el arte a la talla (tools/artes_a_la_talla.py) y LED 3000K en la línea de sombra. La lámina
+  blanca que algún archivo trae (espalda de la caja de luz del display) pasa a Capri, como en el resto de la línea.
+- Los logos modelados en el .skp se reemplazan por los archivos oficiales en platino, con halo cálido 3000K:
+  el logo completo (assets/logo/logo-cubitt-platino.png) y el isotipo recortado de ese mismo archivo
+  (assets/logo/isotipo-cubitt-platino.png, tools/preparar_isotipo.py).
 
-Uso: python tools/skp_a_glb.py archivo.skp salida.glb [mesa|mueble|mueble2]
-     mesa    -> mesa de experiencia (primer mueble mesa cubitt.skp)
-     mueble  -> mueble de exhibición de 120 cm (segundo mueble mesa cubitt.skp)
-     mueble2 -> dos muebles iguales lado a lado (240 cm): mallas compartidas, logo solo en los laterales exteriores
+Uso: python tools/skp_a_glb.py archivo.skp salida.glb [mesa|mueble|mueble2|sobremesa] [--sin-productos] [--productos lista.json]
+     mesa      -> mesa de experiencia de 100 cm (artes-cubitt/originales/mesa cubitt.skp)
+     mueble    -> mueble de exhibición de 120 cm (artes-cubitt/originales/mueble cubitt.skp)
+     mueble2   -> dos muebles iguales lado a lado (240 cm): mallas compartidas, logo al frente de cada módulo e
+                  isotipo solo en los laterales exteriores
+     sobremesa -> display de sobremesa de 50 cm (artes-cubitt/originales/sobre mesa cubitt.skp)
+     --sin-productos  deja fuera los relojes y el audio de referencia del .skp (los renders ponen los productos reales)
+     --productos      guarda en JSON cada producto del .skp (grupo, centro y tamaño en m) para ubicar los reales
+Después se comprime con meshopt: npx gltfpack -i salida.glb -o salida.glb -cc
 Requiere numpy, Pillow, mapbox_earcut, pygltflib (y lo que pide tools/artes_a_la_talla.py).
 """
 import io
@@ -25,28 +31,44 @@ from pygltflib import (GLTF2, Accessor, Asset, Buffer, BufferView, Image as GIma
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import artes_a_la_talla  # noqa: E402
-from skp_lector import Modelo, extraer  # noqa: E402
+from skp_lector import Modelo, extraer, matriz  # noqa: E402
 
 RAIZ = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'propuesta-2027')
 CM = 0.0254 * 100  # pulgadas -> cm
 LOGO = os.path.join(RAIZ, 'assets', 'logo', 'logo-cubitt-platino.png')
+ISOTIPO = os.path.join(RAIZ, 'assets', 'logo', 'isotipo-cubitt-platino.png')
 CAPRI = os.path.join(RAIZ, 'assets', 'materiales', 'capri.jpg')
 DUNA = os.path.join(RAIZ, 'assets', 'materiales', 'duna.jpg')
 
 
-# Cada pieza: qué instancias del .skp toma (centro en y, cm), su centro en planta, material del arte, arte a la talla,
-# grupos que son marco de aluminio o línea de sombra, logos (lado, centro y ancho en m) y la línea de LED.
+# Cada pieza: centro de su planta en el .skp (x, y en cm), material y arte de la caja de luz, grupos del .skp que son
+# marco de aluminio o línea de sombra, grupos con el logo modelado (se reemplaza), logos oficiales
+# (archivo, normal, centro en m, ancho en m) y la línea de LED (x0, x1, z0, z1, alto en m).
 PIEZAS = {
-    'mesa': {'filtro': lambda yc: yc > -100, 'origen': (25.0, -40.0), 'arte_mat': '_2', 'arte': 'viva-pro-2',
-             'aluminio': ('Grupo#2',), 'sombra': ('Grupo#1',),
-             'logos': [(1, (0.40, 0.40, -0.0095)), (-1, (-0.40, 0.40, -0.0095))], 'ancho_logo': 0.365,
-             'led': (-0.37, 0.37, -0.22, 0.22, 0.765)},
-    'mueble': {'filtro': lambda yc: yc < -150, 'origen': (30.05, -250.1), 'arte_mat': '_4', 'arte': 'nueva-era',
-               'aluminio': ('Grupo#9', 'Grupo#11'), 'sombra': ('Grupo#1',),
-               'logos': [(1, (0.60, 0.406, 0.012)), (-1, (-0.60, 0.406, 0.012))], 'ancho_logo': 0.31,
-               'led': (-0.567, 0.55, -0.1695, 0.1695, 0.765)},
+    # 100 × 50 cm: caja de luz frontal (tela 82,4 × 56,1 cm) y logo en los dos laterales (36,5 cm a 40 cm de alto)
+    'mesa': {'origen': (76.84, 83.17), 'arte_mat': '_2', 'arte': 'viva-pro-2',
+             'aluminio': ('Grupo#8',), 'sombra': ('Grupo#1',), 'logo_skp': ('Grupo#12',),
+             'logos': [('logo', (1, 0, 0), (0.50, 0.40, -0.0096), 0.365),
+                       ('logo', (-1, 0, 0), (-0.50, 0.40, -0.0096), 0.365)],
+             'led': (-0.4625, 0.4625, -0.22, 0.22, 0.765)},
+    # 120 × 40 cm: caja de luz trasera sobre cinco postes, logo al frente (44,9 cm a 43,9 cm de alto; en el .skp quedó
+    # 2 cm corrido a la izquierda y se centra) e isotipo de 13,6 cm en los laterales
+    'mueble': {'origen': (44.5, -61.65), 'arte_mat': '_1', 'arte': 'nueva-era',
+               'aluminio': ('Grupo#9', 'Grupo#11'), 'sombra': ('Grupo#1',), 'logo_skp': ('Grupo#12', 'Grupo#16'),
+               'logos': [('logo', (0, 0, 1), (0.0, 0.4388, 0.1995), 0.449),
+                         ('isotipo', (1, 0, 0), (0.60, 0.4336, 0.0083), 0.136),
+                         ('isotipo', (-1, 0, 0), (-0.60, 0.4336, 0.0083), 0.136)],
+               'led': (-0.57, 0.575, -0.1695, 0.1693, 0.765)},
+    # 50 × 25 cm: caja de luz de 50 × 25 cm (tela 48,5 × 23,5 cm), logo de 9,4 cm al frente de la base Capri e isotipo
+    # de 9 cm en la espalda de la caja de luz
+    'sobremesa': {'origen': (46.85, 47.66), 'arte_mat': '_1', 'arte': 'nueva-era',
+                  'aluminio': ('Grupo#17',), 'sombra': ('Grupo#13',), 'logo_skp': ('Grupo#12', 'Group7#2'),
+                  'logos': [('logo', (0, 0, 1), (0.0, 0.0199, 0.125), 0.0944),
+                            ('isotipo', (0, 0, -1), (0.0, 0.193, -0.1106), 0.0902)],
+                  'led': (-0.24, 0.24, -0.115, 0.115, 0.0475)},
 }
 ORIGEN = PIEZAS['mesa']['origen']
+BLANCO_A_CAPRI = ('Lisanne_Caulk',)  # lámina blanca del .skp -> Capri
 
 
 def a_gltf(p_cm):
@@ -148,75 +170,96 @@ class Constructor:
         self.g.save_binary(ruta)
 
 
-def uv_caja(p, n, escala_m):
-    """Proyección plana según la normal (para que la veta y el grano queden derechos)."""
+def uv_caja(p, n, escala_m, veta=False):
+    """Proyección plana según la normal (para que la veta y el grano queden derechos). Con veta=True (Duna) la veta de
+    la textura, que corre en vertical en la imagen, va a lo largo del tope y de sus cantos (eje X)."""
     a = np.abs(n)
     if a[1] >= a[0] and a[1] >= a[2]:
-        return np.stack([p[:, 0], p[:, 2]], 1) / escala_m
+        return (np.stack([p[:, 2], p[:, 0]], 1) if veta else np.stack([p[:, 0], p[:, 2]], 1)) / escala_m
     if a[0] >= a[2]:
-        return np.stack([p[:, 2], -p[:, 1]], 1) / escala_m
-    return np.stack([p[:, 0], -p[:, 1]], 1) / escala_m
+        return (np.stack([p[:, 1], p[:, 2]], 1) if veta else np.stack([p[:, 2], -p[:, 1]], 1)) / escala_m
+    return (np.stack([p[:, 1], p[:, 0]], 1) if veta else np.stack([p[:, 0], -p[:, 1]], 1)) / escala_m
 
 
-def plano_logo(c, centro, normal, ancho, mat_letras, mat_halo, nodos=((0, 0, 0),)):
-    """Logo oficial (PNG) en un plano vertical + halo cálido detrás. normal = ±X."""
-    img = Image.open(LOGO)
+HALO = (1.22, 2.6)  # el halo es 22 % más ancho que el logo y crece 2,6 veces eso en alto
+
+
+def textura_halo(img):
+    """Alfa del logo dilatada y difuminada, en color 3000K."""
+    W, H = img.size
+    lienzo = Image.new('L', (int(W * HALO[0]), int(H * (1 + (HALO[0] - 1) * HALO[1]))), 0)
+    lienzo.paste(img.getchannel('A'), ((lienzo.width - W) // 2, (lienzo.height - H) // 2))
+    alfa = lienzo.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(min(W, H) * 0.16))
+    alfa = alfa.point(lambda v: min(255, int(v * 1.6)))
+    return Image.merge('RGBA', (Image.new('L', alfa.size, 255), Image.new('L', alfa.size, 180), Image.new('L', alfa.size, 107), alfa))
+
+
+def plano_logo(c, archivo, centro, normal, ancho, mat_letras, mat_halo, nodos=((0, 0, 0),)):
+    """Logo oficial (PNG) en un plano vertical que mira hacia `normal` + halo cálido detrás."""
+    img = Image.open(archivo)
     alto = ancho * img.height / img.width
-    for nombre, mat, esc, sep in (('halo-logo', mat_halo, 1.22, 0.002), ('logo-platino', mat_letras, 1.0, 0.004)):
-        w, h = ancho * esc, alto * (1 + (esc - 1) * 2.6)
-        s = np.sign(normal[0])
-        # el plano mira hacia +X o -X; u avanza hacia el frente del lado que se mira
-        dz = np.array([0, 0, 1.0]) * -s
-        base = centro + normal * sep
-        esq = [base + dz * (-w / 2) + np.array([0, -h / 2, 0]), base + dz * (w / 2) + np.array([0, -h / 2, 0]),
-               base + dz * (w / 2) + np.array([0, h / 2, 0]), base + dz * (-w / 2) + np.array([0, h / 2, 0])]
-        pos = np.array(esq)
+    normal = np.asarray(normal, float)
+    derecha = np.cross([0, 1.0, 0], normal)  # derecha de quien mira el logo de frente
+    arriba = np.array([0, 1.0, 0])
+    for nombre, mat, esc, sep in (('halo-logo', mat_halo, HALO[0], 0.002), ('logo-platino', mat_letras, 1.0, 0.004)):
+        w, h = ancho * esc, alto * (1 + (esc - 1) * HALO[1])
+        base = np.asarray(centro, float) + normal * sep
+        pos = np.array([base - derecha * w / 2 - arriba * h / 2, base + derecha * w / 2 - arriba * h / 2,
+                        base + derecha * w / 2 + arriba * h / 2, base - derecha * w / 2 + arriba * h / 2])
         nor = np.repeat(normal[None], 4, 0)
         uv = np.array([[0, 1], [1, 1], [1, 0], [0, 0]], float)
-        idx = np.array([[0, 1, 2], [0, 2, 3]])
-        c.malla(nombre, pos, nor, uv, idx, mat, nodos)
+        c.malla(nombre, pos, nor, uv, np.array([[0, 1, 2], [0, 2, 3]]), mat, nodos)
 
 
 def main():
     global ORIGEN
-    skp, salida = sys.argv[1], sys.argv[2]
-    modo = sys.argv[3] if len(sys.argv) > 3 else 'mesa'
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    skp, salida = args[0], args[1]
+    modo = args[2] if len(args) > 2 and args[2] in ('mesa', 'mueble', 'mueble2', 'sobremesa') else 'mesa'
+    sin_productos = '--sin-productos' in sys.argv
+    json_productos = sys.argv[sys.argv.index('--productos') + 1] if '--productos' in sys.argv else None
     pieza = PIEZAS['mueble' if modo == 'mueble2' else modo]
     ORIGEN = pieza['origen']
     # composición: dos módulos de 1,20 m lado a lado (el de la izquierda en -0,60 m, el de la derecha en +0,60 m)
     modulos = ((-0.60, 0, 0), (0.60, 0, 0)) if modo == 'mueble2' else ((0, 0, 0),)
     m = Modelo(extraer(skp, tempfile.mkdtemp()))
     nombres = {k: v['nombre'] for k, v in m.mats.items()}
-    from skp_lector import matriz
-    caras = []
+    caras, productos = [], []
     for inst in m.raiz[4]:
         d = m.defs.get(inst['ref'])
-        tr = m.triangulos(d, matriz(inst['t']), inst['mat']) if d else []
-        if tr and pieza['filtro'](np.concatenate([t[3] for t in tr])[:, 1].mean() * CM):
-            caras += [(('MODELO',) + t[0],) + t[1:] for t in tr]
+        if not d:
+            continue
+        tri = [(('MODELO',) + t[0],) + t[1:] for t in m.triangulos(d, matriz(inst['t']), inst['mat'])]
+        # producto de referencia: grupo con componentes adentro que no es caja de luz ni logo (relojes, audífonos, bafles)
+        if d[4] and d[0] not in pieza['aluminio'] + pieza['logo_skp'] and tri:
+            p = a_gltf(np.concatenate([t[3] for t in tri]) * CM)
+            productos.append({'grupo': d[0], 'centro': ((p.min(0) + p.max(0)) / 2).round(4).tolist(),
+                              'tamano': np.ptp(p, 0).round(4).tolist(), 'base': round(float(p[:, 1].min()), 4)})
+            if sin_productos:
+                continue
+        caras += tri
+    if json_productos:
+        import json
+        with open(json_productos, 'w', encoding='utf-8') as fj:
+            json.dump(sorted(productos, key=lambda q: (q['centro'][2], q['centro'][0])), fj, ensure_ascii=False, indent=1)
     c = Constructor()
 
     # ---- materiales
     # zona limpia de la muestra Capri (la foto trae el rótulo «CAPRI · textura mate» y una línea abajo a la derecha)
     t_capri = c.textura(Image.open(CAPRI).convert('RGB').crop((0, 0, 600, 480)).resize((512, 410)), sampler=1)
-    t_duna = c.textura(Image.open(DUNA).convert('RGB'))
-    es_arte = lambda t: nombres.get(t[1]) == pieza['arte_mat'] or nombres.get(t[6]) == pieza['arte_mat']
+    t_duna = c.textura(Image.open(DUNA).convert('RGB'), sampler=1)
+    es_arte = lambda t: (nombres.get(t[1]) == pieza['arte_mat'] or nombres.get(t[6]) == pieza['arte_mat']) and not any(r in pieza['logo_skp'] for r in t[0][1:])
     p_arte = a_gltf(np.concatenate([t[3] for t in caras if es_arte(t)]) * CM)
     ancho_arte = np.ptp(p_arte[:, 0])
     alto_arte = np.ptp(p_arte[:, 1])
     artes = [pieza['arte']] if modo != 'mueble2' else ['nueva-era', 'viva-pro-2']
     t_artes = [c.textura(Image.fromarray(artes_a_la_talla.generar(a, ancho_arte / alto_arte, 900)), 88) for a in artes]
-    logo = Image.open(LOGO).convert('RGBA')
-    logo.thumbnail((1024, 1024))
-    t_logo = c.textura(logo)
-    # halo: alfa del logo dilatada y difuminada, color 3000K
-    W, H = logo.size
-    lienzo = Image.new('L', (int(W * 1.22), int(H * (1 + 0.22 * 2.6))), 0)
-    lienzo.paste(logo.getchannel('A'), ((lienzo.width - W) // 2, (lienzo.height - H) // 2))
-    alfa = lienzo.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(H * 0.16))
-    alfa = alfa.point(lambda v: min(255, int(v * 1.6)))
-    halo = Image.merge('RGBA', (Image.new('L', alfa.size, 255), Image.new('L', alfa.size, 180), Image.new('L', alfa.size, 107), alfa))
-    t_halo = c.textura(halo)
+    t_logo, t_halo = {}, {}
+    for clave, archivo in (('logo', LOGO), ('isotipo', ISOTIPO)):
+        img = Image.open(archivo).convert('RGBA')
+        img.thumbnail((1024, 1024))
+        t_logo[clave] = c.textura(img)
+        t_halo[clave] = c.textura(textura_halo(img))
 
     M = {
         'capri': c.material('Capri', tex=t_capri, rugosidad=0.85),
@@ -227,19 +270,21 @@ def main():
         'sombra': c.material('Línea de sombra', (0.33, 0.30, 0.27, 1), rugosidad=0.9),
         'led': c.material('LED 3000K', (1, 0.76, 0.49, 1), emisivo=(1.0, 0.70, 0.42), sin_luz=True),
         'vidrio': c.material('Acrílico', (0.92, 0.94, 0.95, 0.28), rugosidad=0.05, mezcla='BLEND'),
-        'logo': c.material('Logo platino', (0.92, 0.91, 0.88, 1), metal=0.75, rugosidad=0.3, tex=t_logo, mezcla='MASK'),
-        'halo': c.material('Halo 3000K', (1, 1, 1, 1), tex=t_halo, mezcla='BLEND', sin_luz=True),
     }
+    for clave in t_logo:
+        M[f'logo:{clave}'] = c.material(f'Platino · {clave}', (0.92, 0.91, 0.88, 1), metal=0.75, rugosidad=0.3,
+                                        tex=t_logo[clave], mezcla='MASK')
+        c.g.materials[M[f'logo:{clave}']].alphaCutoff = 0.4
+        M[f'halo:{clave}'] = c.material(f'Halo 3000K · {clave}', (1, 1, 1, 1), tex=t_halo[clave], mezcla='BLEND', sin_luz=True)
     arte_2 = None
     if len(t_artes) > 1:
         arte_2 = c.material('Tela backlight 5000K · módulo 2', tex=t_artes[1], emisivo=(0.62, 0.64, 0.7), tex_emisiva=t_artes[1], rugosidad=0.9)
-    c.g.materials[M['logo']].alphaCutoff = 0.4
 
     def mat_de(nombre_skp, ruta):
         grupo = ruta[1] if len(ruta) > 1 else ''
         if nombre_skp == '_':
             return 'duna'
-        if nombre_skp == 'C02_Golden_Beige':
+        if nombre_skp == 'C02_Golden_Beige' or nombre_skp in BLANCO_A_CAPRI:
             return 'capri'
         if grupo in pieza['aluminio']:
             return 'aluminio'
@@ -254,15 +299,21 @@ def main():
     # ---- geometría por material
     lotes = {}
     for ruta, mid, fid, pw, tri, nw, mb in caras:
-        if 'Grupo#64' in ruta:  # logo modelado en el .skp: se reemplaza por el archivo oficial
+        if any(r in pieza['logo_skp'] for r in ruta[1:]):  # logo modelado en el .skp: se reemplaza por el archivo oficial
             continue
         n = np.array([-nw[1], nw[2], -nw[0]])
         if nombres.get(mid) == pieza['arte_mat']:
             clave = 'arte'
         elif nombres.get(mb) == pieza['arte_mat']:
             clave, n = 'arte', -n  # el arte está en la cara posterior (mira al cliente)
+        elif mid is None and nombres.get(mb) in BLANCO_A_CAPRI:
+            clave, n = 'capri', -n  # la lámina blanca está en la cara posterior (espalda de la caja de luz)
         else:
             clave = mat_de(nombres.get(mid), ruta)
+        if clave == 'arte':
+            # la tela mira al cliente; el .skp la repite en la espalda de la caja de luz, que atrás va cerrada en Capri
+            atras = a_gltf(pw * CM)[:, 2].mean() < p_arte[:, 2].max() - 0.003
+            clave, n = ('capri', np.array([0, 0, -1.0])) if atras else ('arte', np.array([0, 0, 1.0]))
         if clave is None:  # productos y piezas sin material del proyecto: color del .skp
             info = m.mats.get(mid)
             rgb = info['color'] if info else (205, 205, 205)
@@ -283,7 +334,7 @@ def main():
         if clave == 'arte':
             uv = np.stack([(p[:, 0] - p_arte[:, 0].min()) / ancho_arte, (p_arte[:, 1].max() - p[:, 1]) / alto_arte], 1)
         else:
-            uv = uv_caja(p, n, 0.6 if clave == 'capri' else 0.35)
+            uv = uv_caja(p, n, {'capri': 0.6, 'duna': 0.7}.get(clave, 0.35), veta=clave == 'duna')
         L['pos'].append(p)
         L['nor'].append(np.repeat(n[None], len(p), 0))
         L['uv'].append(uv)
@@ -298,17 +349,19 @@ def main():
 
     # ---- LED 3000K continuo en la línea de sombra (bajo el tope, a 1 mm del canto rehundido)
     x0, x1, z0, z1, y_led = pieza['led']
+    h = min(0.004, y_led * 0.08)
     for z in (z0 - 0.001, z1 + 0.001):
-        pos = np.array([[x0, y_led - 0.004, z], [x1, y_led - 0.004, z], [x1, y_led + 0.004, z], [x0, y_led + 0.004, z]])
+        pos = np.array([[x0, y_led - h, z], [x1, y_led - h, z], [x1, y_led + h, z], [x0, y_led + h, z]])
         c.malla('led', pos, np.repeat([[0, 0, np.sign(z)]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
     for x in (x0 - 0.001, x1 + 0.001):
-        pos = np.array([[x, y_led - 0.004, z0], [x, y_led - 0.004, z1], [x, y_led + 0.004, z1], [x, y_led + 0.004, z0]])
+        pos = np.array([[x, y_led - h, z0], [x, y_led - h, z1], [x, y_led + h, z1], [x, y_led + h, z0]])
         c.malla('led', pos, np.repeat([[np.sign(x), 0, 0]], 4, 0), None, np.array([[0, 1, 2], [0, 2, 3]]), M['led'], modulos)
 
-    # ---- logo oficial en los laterales (donde estaba el del .skp); en composición solo en los laterales exteriores
-    for lado, centro in pieza['logos']:
-        nodos = modulos if len(modulos) == 1 else [t for t in modulos if np.sign(t[0]) == lado]
-        plano_logo(c, np.array(centro), np.array([lado, 0, 0.0]), pieza['ancho_logo'], M['logo'], M['halo'], nodos)
+    # ---- logos oficiales donde estaban los del .skp; en composición, los de los laterales solo en los exteriores
+    for clave, normal, centro, ancho in pieza['logos']:
+        lateral = abs(normal[0]) > 0.5
+        nodos = modulos if (len(modulos) == 1 or not lateral) else [t for t in modulos if np.sign(t[0]) == np.sign(normal[0])]
+        plano_logo(c, LOGO if clave == 'logo' else ISOTIPO, centro, normal, ancho, M[f'logo:{clave}'], M[f'halo:{clave}'], nodos)
 
     c.guardar(salida)
     print(f'{salida}: {os.path.getsize(salida) / 1e6:.2f} MB · arte {ancho_arte * 100:.1f} × {alto_arte * 100:.1f} cm')

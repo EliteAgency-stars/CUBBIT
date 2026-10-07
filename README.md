@@ -2,7 +2,7 @@
 
 ![Planta de zonificación CUBITT](assets/01-plano-zonificacion.png)
 
-> **Nuevo · Propuesta de mobiliario 2027 «Línea Platino» (FARUK AGENCIA):** sitio en [`index.html`](index.html) con escena 3D interactiva, planos cenitales de producto, mueble Cubitt Jr & Teens, renders Higgsfield y artes reales de Cubitt. Ficha técnica en [`propuesta-2027/PROPUESTA.md`](propuesta-2027/PROPUESTA.md).
+> **Nuevo · Propuesta de mobiliario 2027 «Línea Platino» (FARUK AGENCIA):** sitio en [`index.html`](index.html) con escena 3D interactiva, mesa, mueble y display de sobremesa según los SketchUp de FARUK AGENCIA (modelos 3D exactos y renders Blender Cycles), planos cenitales de producto, mueble Cubitt Jr & Teens y artes reales de Cubitt. Ficha técnica en [`propuesta-2027/PROPUESTA.md`](propuesta-2027/PROPUESTA.md).
 
 > Repositorio de referencia del proyecto de adecuación del local comercial **CUBITT** (tecnología y accesorios, línea smartwatch **VIVA PRO 2**), elaborado por **FARUK AGENCIA — Inversiones Rahman SAS** / **BAE Group**. Consolida la propuesta económica, alcance por capítulos, cronograma, estado de obra e imágenes de marca.
 

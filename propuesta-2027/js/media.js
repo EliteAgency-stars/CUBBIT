@@ -1,38 +1,37 @@
 // Renders de la propuesta.
 //
-// v3 (Higgsfield GPT Image 2.5 + composición): Higgsfield genera la escena con los productos reales
-// de Cubitt como referencia y deja las cajas de luz en verde croma y el lugar del logo en magenta.
-// tools/componer_renders.py pega encima, con perspectiva, las artes reales y el logo oficial en platino.
-// v4 (familia, mesa, touch, mueble, modular, kids, kidsProducto): cada arte se rediagrama a la proporción
-// real de su caja (tools/artes_a_la_talla.py), sin estirar ni rellenar con copias difuminadas, y el logo
-// lleva halo de contorno cálido 3000K.
-// Las imágenes v3 viven en el almacenamiento de Higgsfield; las de propuesta-2027/renders/ son de la v2.
+// v5 (Blender Cycles, tools/render_cycles.py): se renderizan los SketchUp de FARUK AGENCIA tal cual (mesa cubitt,
+// mueble cubitt y sobre mesa cubitt), con los materiales del proyecto (Capri, Duna, inox, aluminio), las artes a la talla
+// en la tela backlight 5000K, el LED 3000K, el logo y el isotipo oficiales con halo 3000K y los productos reales de Cubitt
+// en las posiciones del archivo. Viven en propuesta-2027/renders/ (completo + miniatura de 900 px).
+// v3/v4 (Higgsfield GPT Image 2.5 + composición): solo quedan los del mueble Cubitt Jr & Teens, que no cambió.
 const HF = 'https://d2ol7oe51mr4n9.cloudfront.net/user_3H8VPOIlKTSsf171GizUHRYwT0M/';
 const R = 'propuesta-2027/renders/';
 
 const v3 = (id, alt) => ({ alt, full: `${HF}${id}.jpg`, thumb: `${HF}${id}.jpg` });
-const v2 = (clave, alt) => ({ alt, full: `${R}${clave}.jpg`, thumb: `${R}${clave}-900.jpg` });
+const local = (clave, alt) => ({ alt, full: `${R}${clave}.jpg`, thumb: `${R}${clave}-900.jpg` });
 
 export const RENDERS = {
-  familia: v3('77f04329-ae83-4f91-b630-f3955a263dff', 'Familia Cubitt 2027 en tienda: mesa de experiencia y dos muebles con cajas de luz y artes reales'),
-  mesa: v3('4e60c9af-f0eb-4195-a346-6228e579bac9', 'Mesa de experiencia: caja de luz «Nueva Era», elevador de madera con bafles, audífonos a la izquierda y relojes al frente'),
-  touch: v3('1341c4da-7eab-4232-bd2e-5cb4e80e6d71', 'Clientes probando relojes y audífonos Cubitt en la mesa de experiencia'),
-  vendedor: v2('vendedor', 'Lado vendedor de la mesa: puertas push, cajón, bandeja de cables y zócalo inox'),
-  mueble: v3('12ef1acb-8fec-4b21-81a6-ea887406d995', 'Mueble de exhibición: caja de luz Viva Pro 2, lateral Aura Pro 2 y logo platino 3000K'),
-  modular: v3('3dd36272-d654-4c46-926c-5ec67b65e268', 'Composición modular de tres muebles: Nueva Era, Viva Pro 2 y Nueva Era, con laterales Terra'),
-  sobremesa: v3('cca2e26e-e725-4676-bde9-7defe1502e90', 'Display de sobremesa con caja de luz, logo platino en la base y tres checkpoints'),
+  familia: local('familia', 'Familia Cubitt 2027 en tienda: mesa de experiencia de 100 cm, composición de dos muebles con cajas de luz Nueva Era y Viva Pro 2 y display de sobremesa en el mostrador'),
+  mesa: local('mesa', 'Mesa de experiencia de 100 × 79 × 50 cm: caja de luz Viva Pro 2, nueve relojes al frente y el audio sobre el elevador Duna'),
+  touch: local('touch', 'Touch & Try a la altura del cliente: relojes en checkpoint con ficha acrílica y audio Cubitt sobre el elevador'),
+  vendedor: local('vendedor', 'Lado vendedor de la mesa: dos puertas push en Capri, tope Duna y logo platino en el lateral'),
+  mueble: local('mueble', 'Mueble de exhibición de 120 cm: frente liso con logo platino 3000K, isotipo en el lateral y caja de luz Nueva Era'),
+  modular: local('modular', 'Composición de dos módulos (240 cm): cajas de luz Nueva Era y Viva Pro 2 y logo al frente de cada módulo'),
+  sobremesa: local('sobremesa', 'Display de sobremesa de 50 × 32 × 25 cm sobre el mostrador: caja de luz Nueva Era, cinco relojes y logo platino en la base'),
   kids: v3('e51149cf-4d2f-48de-8b69-57f931aa6aad', 'Mueble Cubitt Jr & Teens: niños probando relojes Cubitt Jr. en el mesón de 60 cm y caja de luz Rapunzel'),
   kidsProducto: v3('fbbe9958-05cf-4165-970d-5521c527c2b7', 'Mueble Cubitt Jr & Teens: mesón infantil a 60 cm, mesón de padres a 90 cm y caja de luz Cubitt Jr.'),
-  logo: v3('6a793f50-d5a7-41a4-8e7f-7273f4b895b8', 'Logo Cubitt oficial en platino con halo cálido 3000K sobre Capri'),
-  material: v2('material', 'Detalle de materiales: melamina Capri, cubierta Duna, LED 3000K, zócalo inox y marco redondeado'),
-  despiece: v3('8f5fde88-8aa5-4864-9714-99bc96f77767', 'Despiece de la mesa de experiencia con sus ocho capas'),
+  logo: local('logo', 'Logo Cubitt oficial en platino con halo de contorno 3000K sobre el lateral Capri de la mesa'),
+  material: local('material', 'Detalle de materiales: tope Duna con esquina R40, línea de sombra con LED 3000K, Capri, marco de aluminio y logo platino'),
+  despiece: local('despiece', 'Despiece de la mesa de experiencia en cinco pasos: zócalo, cuerpo, caja de luz, tope con línea de sombra y elevador'),
 };
 
-// Modelos 3D. La mesa y el mueble (solo y en composición de dos) salen directo de los SketchUp de FARUK AGENCIA (geometría exacta, tools/skp_a_glb.py,
+// Modelos 3D. La mesa, el mueble (solo y en composición de dos) y el display de sobremesa salen directo de los SketchUp de FARUK AGENCIA (geometría exacta, tools/skp_a_glb.py,
 // comprimida con meshopt); el mueble Jr & Teens es el modelo Higgsfield (Tripo H3.1, imagen → 3D).
 export const MODELOS_IA = {
   mesa: 'propuesta-2027/modelos/mesa-cubitt-2027.glb',
   mueble: 'propuesta-2027/modelos/mueble-cubitt-2027.glb',
   mueble2: 'propuesta-2027/modelos/mueble-cubitt-2027-x2.glb',
+  sobremesa: 'propuesta-2027/modelos/sobremesa-cubitt-2027.glb',
   kids: 'https://d8j0ntlcm91z4.cloudfront.net/user_3H8VPOIlKTSsf171GizUHRYwT0M/hf_20261001_073624_5615a9f7-658f-469c-987c-a8bb33867665.glb',
 };

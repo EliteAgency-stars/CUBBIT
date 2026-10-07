@@ -3,7 +3,7 @@
 Copia de la carpeta **ARTES CUBITT** entregada por FARUK AGENCIA (artes del mobiliario, fotos de producto, planos y archivos fuente).
 Las versiones optimizadas para la web están en `web/` y los recortes sin fondo en `productos/` (`python tools/preparar_artes.py`).
 
-Total: **91 archivos**.
+Total: **92 archivos**.
 
 | Archivo | Tipo | KB | Píxeles |
 |---|---|---:|---|
@@ -73,17 +73,18 @@ Total: **91 archivos**.
 | Headphones Jr. Cubitt CTANCJR-5 Pink 02.jpg | Foto de producto | 241 | 1000 × 1000 |
 | medidas display cubitt con checkpoints.pdf | Plano / medidas | 38 |  |
 | medidas display cubitt sin checkpoints.pdf | Plano / medidas | 33 |  |
+| mesa cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 11.342 |  |
+| mueble cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 11.372 |  |
 | Mueble_Lateral Aura Pro 40x76 cm (1).jpg | Arte / valla | 1.650 | 2863 × 5415 |
 | Mueble_Lateral Aura Pro 40x76 cm.jpg | Arte / valla | 1.585 | 2863 × 5415 |
 | plano mesa de audio cubitt.pdf | Plano / medidas | 266 |  |
 | PRESENTACION CUBITT DIC25 ESPAÑOL (1).pdf | Presentación de marca | 22.571 |  |
-| primer mueble mesa cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 11.242 |  |
 | relacion de pagos tienda cubitt primera semana.xlsx | Documento | 13 |  |
 | Reloj Inteligente Cubitt Jr. CTJR-2 Artic Blue 01.jpg | Foto de producto | 175 | 1000 × 1000 |
 | Reloj Inteligente Cubitt Jr. CTJR-2 Artic Blue 02.jpg | Foto de producto | 241 | 1000 × 1000 |
 | Reloj Inteligente Cubitt Teens CTTN-3 Forest Green 01.jpg | Foto de producto | 168 | 1000 × 1000 |
 | Reloj Inteligente Cubitt Teens CTTN-3 Forest Green 02.jpg | Foto de producto | 244 | 1000 × 1000 |
-| segundo mueble mesa cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 11.240 |  |
+| sobre mesa cubitt.skp | Archivo fuente (SketchUp / Photoshop) | 10.901 |  |
 | Termo Cubitt CTHB24-4D Burgandy 01.webp | Foto de producto | 265 | 1000 × 1000 |
 | Termo Cubitt CTHB24-4D Burgandy 02.webp | Foto de producto | 273 | 1000 × 1000 |
 | Terra verde 2.webp | Foto de producto | 26 | 800 × 800 |
