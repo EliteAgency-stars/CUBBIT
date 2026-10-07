@@ -81,12 +81,11 @@ export const PLANOS = {
     zonas: [
       { x: -820, y: -160, w: 1683, h: 250, tipo: 'duna', etiqueta: 'Repisa flotante Duna a 1,26 m · 168 × 25 cm · audio y 8 fichas · LED 3000K' },
       { x: -1051, y: -172, w: 2088, h: 14, tipo: 'luz', etiqueta: 'Caja de luz 209 × 60 cm · arte Nueva Era 5000K (de 1,52 a 2,12 m)' },
-      { x: -720, y: 0, w: 1440, h: 160, tipo: 'zona', etiqueta: 'Mesón a 79,4 cm · 10 relojes con ficha acrílica' },
+      { x: -720, y: -30, w: 1440, h: 190, tipo: 'zona', etiqueta: 'Mesón a 79,4 cm · 10 relojes con ficha acrílica' },
       { x: -1010, y: -40, w: 230, h: 200, tipo: 'zona', etiqueta: 'Power ANC en soporte acrílico a cada lado' },
       { x: 820, y: -40, w: 230, h: 200, tipo: 'zona', etiqueta: null },
     ],
     productos: [
-      ...[-618, -462, -330, -200, -61, 87, 227, 376, 519, 667].map((x, i) => ({ n: RELOJES_MURO[i], x, y: 60, w: 70, nombre: RELOJ[RELOJES_MURO[i]] })),
       { n: 'power-anc-negro', x: -873, y: 44, w: 150, nombre: 'Power ANC' },
       { n: 'power-anc-negro', x: 937, y: 44, w: 150, nombre: 'Power ANC' },
       { n: 'power-pro-2', x: -612, y: -53, w: 250, nombre: 'Power Pro 2' },
@@ -94,6 +93,8 @@ export const PLANOS = {
       ...[-361, -186, -18, 134].map((x) => ({ n: 'power-buds-2', x, y: -44, w: 75, nombre: 'Power Buds 2' })),
       { n: 'power-go-2', x: 290, y: -53, w: 70, nombre: 'Power Go 2' },
       { n: 'power-plus-2', x: 420, y: -53, w: 85, nombre: 'Power Plus 2' },
+      // los relojes van en el mesón, debajo del vuelo de la repisa: se dibujan encima para que se lean
+      ...[-618, -462, -330, -200, -61, 87, 227, 376, 519, 667].map((x, i) => ({ n: RELOJES_MURO[i], x, y: 18, w: 70, nombre: RELOJ[RELOJES_MURO[i]] })),
     ],
     frente: 'Frente: cuatro puertas push Capri · cabecera con logo platino de 64,5 cm y LED 3000K hacia abajo · lateral izquierdo e interior en Nácar',
   },

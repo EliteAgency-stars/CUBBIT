@@ -96,15 +96,16 @@ function materialDuna(tex) {
 
 // Caja de luz: marco de aluminio con esquinas redondas + tela backlight con el arte (5000K)
 // Las artes vienen a la talla de cada caja (artes-cubitt/a-la-talla/, tools/artes_a_la_talla.py): no se recortan ni se estiran.
-function cajaDeLuz(p, w, h, arte, x, y, z, rotY = 0, despiece, { borde = 0.022, fondo = 0.03, radio = 0.045 } = {}) {
+// bordeY: borde de arriba y abajo cuando el marco no es igual en los cuatro lados (caja de luz del muro).
+function cajaDeLuz(p, w, h, arte, x, y, z, rotY = 0, despiece, { borde = 0.022, bordeY = borde, fondo = 0.03, radio = 0.045 } = {}) {
   const r = Math.min(radio, h / 4);
   const anillo = rectRedondeado(w, h, r);
-  anillo.holes.push(rectRedondeado(w - borde * 2, h - borde * 2, r - borde * 0.6));
+  anillo.holes.push(rectRedondeado(w - borde * 2, h - bordeY * 2, r - borde * 0.6));
   const bisel = Math.min(0.004, borde / 3);
   const geoMarco = new THREE.ExtrudeGeometry(anillo, { depth: fondo, bevelEnabled: true, bevelThickness: bisel, bevelSize: bisel, bevelSegments: 2, curveSegments: 10 });
   const alu = p.mat({ color: COLOR.aluminio, metalness: 0.9, roughness: 0.32 });
   const marco = new THREE.Mesh(geoMarco, alu);
-  const wi = w - borde * 2, hi = h - borde * 2;
+  const wi = w - borde * 2, hi = h - bordeY * 2;
   const geoTela = new THREE.ShapeGeometry(rectRedondeado(wi, hi, r - borde * 0.6), 10);
   const uv = geoTela.attributes.uv, pos = geoTela.attributes.position;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, (pos.getX(i) + wi / 2) / wi, (pos.getY(i) + hi / 2) / hi);
@@ -327,14 +328,14 @@ function crearMuro(tx) {
   // Zócalo: frente inox y cuerpo Nácar
   p.caja(2.17, 0.0497, 0.022, inox, 0, 0.025, 0.2196, 0);
   p.caja(2.17, 0.0497, 0.426, nacar, 0, 0.025, -0.0047, 0);
-  // Mesón: cuerpo Nácar, cuatro puertas push Capri, banda Capri y tope Duna con gola
+  // Mesón: cuerpo Nácar, cuatro puertas push Capri, banda Capri, gola rehundida de 5 cm (frente Capri 6,6 cm atrás) y tope Duna de 18 mm
   p.caja(2.17, 0.676, 0.454, nacar, 0, 0.0497 + 0.338, -0.004, 0);
   [[3.11, 54.65], [56.19, 106.89], [108.42, 160], [161.5, 218.5]].forEach(([a, b]) => {
     p.caja((b - a) / 100, 0.6462, 0.015, capri, -((a + b) / 2 - 110) / 100, 0.0647 + 0.3231, 0.2231, 0.002);
   });
   p.caja(2.17, 0.015, 0.469, capri, 0, 0.7184, 0.0, 0);
-  p.caja(2.17, 0.068, 0.469, duna, 0, 0.7599, 0.0, 0.002);
-  p.caja(2.17, 0.05, 0.004, sombra, 0, 0.7509, 0.1645, 0);
+  p.caja(2.17, 0.05, 0.4024, capri, 0, 0.7509, -0.0369, 0);
+  p.caja(2.17, 0.018, 0.469, duna, 0, 0.7849, 0.0, 0.002);
   // Laterales: el izquierdo en Nácar y el derecho en Capri (así vienen en el SketchUp), espalda Capri y cabecera
   p.caja(0.015, 2.18, 0.452, nacar, -1.0925, 1.09, 0.0081, 0);
   p.caja(0.015, 2.18, 0.4763, capri, 1.0925, 1.09, 0, 0);
@@ -344,7 +345,7 @@ function crearMuro(tx) {
   p.caja(2.17, 0.004, 0.0133, led, 0, 2.178, 0.1641, 0);
   logoPlatino(p, 0.645, 0, 2.3645, 0.2392, 0, undefined, 0.012);
   // Caja de luz con el arte Nueva Era a la talla (tela 206,7 × 56,8 cm)
-  cajaDeLuz(p, 2.0875, 0.60, tx.arteMuro, -0.0069, 1.8197, -0.1599, 0, undefined, { borde: 0.011, fondo: 0.0086, radio: 0.05 });
+  cajaDeLuz(p, 2.0875, 0.60, tx.arteMuro, -0.0069, 1.8197, -0.1599, 0, undefined, { borde: 0.0105, bordeY: 0.0158, fondo: 0.0086, radio: 0.05 });
   // Repisa flotante: base Capri, línea de sombra con LED 3000K y tope Duna (esquinas redondas)
   cuerpo(p, 1.6826, 0.04, 0.25, capri, 0.021, 1.1889, -0.0349, undefined, 0.033);
   cuerpo(p, 1.6154, 0.015, 0.23, sombra, 0.021, 1.2289, -0.0349, undefined, 0.012);
@@ -361,7 +362,7 @@ function crearMuro(tx) {
   // Mesón: diez relojes en checkpoint con su ficha y Power ANC en soportes acrílicos a los dos lados
   const yTope = 0.7939;
   [-0.6178, -0.4624, -0.3299, -0.1999, -0.0609, 0.0871, 0.2271, 0.3761, 0.5191, 0.6671].forEach((x, i) => {
-    producto(p, RELOJES_MURO[i], 0.075, x, yTope, 0.04);
+    producto(p, RELOJES_MURO[i], 0.075, x, yTope, 0.018);
     p.caja(0.08, 0.004, 0.05, acrilico, x, yTope + 0.002, 0.12, 0.001);
   });
   [[-0.8728, 0.0436], [0.9367, 0.0436]].forEach(([x, z]) => {

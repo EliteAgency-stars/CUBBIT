@@ -56,7 +56,8 @@ AUDIO = {'audifonos': ('power-anc-negro', 0.20), 'buds': ('power-buds-2', 0.072)
          'parlante-alto': ('power-plus-2', 0.20), 'parlante-pequeno': (('power-go-2', 0.09), ('power-mini', 0.087))}
 # Ajustes por pieza. El muro trae sus propios soportes acrílicos de audífonos y, en el .skp, los productos del mesón quedaron
 # 1,8 cm por encima del tope Duna (79,4 cm): en el render se apoyan sobre el tope y cada reloj lleva su ficha acrílica.
-OPCIONES = {'muro': {'soporte_audifonos': False, 'bajar': 0.018, 'fichas': True}}
+# reloj_dz: en el .skp del muro cada reloj trae una placa base de 18 cm; el centro del grupo queda 5 cm delante del reloj.
+OPCIONES = {'muro': {'soporte_audifonos': False, 'bajar': 0.018, 'fichas': True, 'reloj_dz': -0.05}}
 
 
 def gl(x, y, z):
@@ -328,7 +329,7 @@ def importar(modo, M, ubicacion=(0, 0, 0), fuerza_arte=1.6, artes=None):
         for o in nuevos:
             if o.type == 'MESH' and o.material_slots and o.material_slots[0].material.name == 'Acrilico':
                 for v in o.data.vertices:
-                    if v.co.z < 1.0:
+                    if v.co.z < 1.15:  # todo el acrílico del mesón (fichas y soportes); la repisa empieza en 1,24 m
                         v.co.z -= bajar
     return raiz, nuevos
 
@@ -387,14 +388,14 @@ def poner_productos(modo, ubicacion, M, camara, cache, desplazar=(0, 0, 0)):
     nombres = RELOJES[modo]
     ox, oy, oz = (ubicacion[i] + desplazar[i] for i in range(3))
     for i, q in enumerate(orden):
-        x, base, z = q['centro'][0] + ox, q['base'] + oy, q['centro'][2] + oz
+        x, base, z = q['centro'][0] + ox, q['base'] + oy, q['centro'][2] + oz + opc.get('reloj_dz', 0.0)
         b = gl(x, base, z)
         objetos.append(cilindro(0.025, 0.008, b, M.checkpoint, f'checkpoint-{i}'))
         objetos.append(cilindro(0.0055, 0.034, b + Vector((0, 0, 0.008)), M.checkpoint, f'poste-{i}'))
         foto = os.path.join(PROD, f'{nombres[i % len(nombres)]}.png')
         objetos.append(plano_foto(f'reloj-{i}', foto, 0.072, b + Vector((0, 0, 0.025 + 0.036)), camara, cache, adelante=0.012))
         if opc.get('fichas'):
-            bpy.ops.mesh.primitive_cube_add(size=1, location=gl(x, base + 0.002, z + 0.072))
+            bpy.ops.mesh.primitive_cube_add(size=1, location=gl(x, base + 0.002, z + 0.10))
             ficha = bpy.context.object
             ficha.scale = (0.08, 0.05, 0.004)
             ficha.data.materials.append(M.acrilico)

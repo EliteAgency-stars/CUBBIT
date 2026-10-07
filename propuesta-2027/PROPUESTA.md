@@ -51,7 +51,7 @@ Iluminación: **3000K** en muebles y logo · **5000K** en cajas de luz · cinta 
 
 ### Bonus · Muro de exhibición — 220 × 248 × 49 cm (SketchUp «cuarto mueble mesa cubitt»)
 - Medidas leídas de [`artes-cubitt/originales/cuarto mueble mesa cubitt.skp`](artes-cubitt/originales/). Mueble de pared con toda la línea en un solo frente.
-- **Mesón**: cuerpo de 217 × 67,6 cm sobre zócalo con frente inox, cuatro puertas push Capri y tope Duna de 6,8 cm a 79,4 cm.
+- **Mesón**: cuerpo de 217 × 67,6 cm sobre zócalo con frente inox, cuatro puertas push Capri, gola rehundida de 5 cm y tope Duna de 18 mm a 79,4 cm.
 - **Repisa flotante** de 168 × 25 cm a 1,26 m con el mismo ADN del display: base Capri de 4 cm con esquinas redondas, línea de sombra con LED 3000K y tope Duna de 15 mm. Lleva el audio (dos Power Pro 2, cuatro Power Buds 2, Power Go 2 y Power Plus 2) con ocho fichas acrílicas.
 - **Caja de luz** de aluminio de **208,8 × 60 cm** (tela 206,7 × 56,8 cm), de 1,52 a 2,12 m, con el arte **Nueva Era** a la talla, sobre una espalda Capri.
 - **Cabecera** de 30 cm con el **logo platino** de 64,5 cm y halo 3000K (en el .skp quedó 6 cm corrido a la derecha; se centró) y cinta LED 3000K hacia abajo que ilumina el nicho.
