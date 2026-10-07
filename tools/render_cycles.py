@@ -323,8 +323,9 @@ def dimensiones_tela(o):
     return np.ptp(v[:, 0]), np.ptp(v[:, 2])
 
 
-def plano_foto(nombre, ruta, alto, centro, mira, M_cache):
-    """Foto recortada del producto en un plano vertical que mira hacia la cámara (solo gira en el eje vertical)."""
+def plano_foto(nombre, ruta, alto, centro, mira, M_cache, adelante=0.0):
+    """Foto recortada del producto en un plano vertical que mira hacia la cámara (solo gira en el eje vertical).
+    adelante: cuánto se adelanta el plano hacia la cámara (para tapar el poste o el soporte que lo sostiene)."""
     if ruta not in M_cache:
         M_cache[ruta] = mat_recorte(f'Producto {os.path.basename(ruta)}', ruta, rugosidad=0.5, emision=0.22)
     w, h = Image.open(ruta).size
@@ -337,6 +338,7 @@ def plano_foto(nombre, ruta, alto, centro, mira, M_cache):
     p.location = centro
     d = Vector((mira.x - centro.x, mira.y - centro.y))
     p.rotation_euler.z = math.atan2(d.x, -d.y)
+    p.location += Vector((math.sin(p.rotation_euler.z), -math.cos(p.rotation_euler.z), 0)) * adelante
     p.data.materials.append(M_cache[ruta])
     return p
 
@@ -368,9 +370,9 @@ def poner_productos(modo, ubicacion, M, camara, cache, desplazar=(0, 0, 0)):
         x, base, z = q['centro'][0] + ox, q['base'] + oy, q['centro'][2] + oz
         b = gl(x, base, z)
         objetos.append(cilindro(0.025, 0.008, b, M.checkpoint, f'checkpoint-{i}'))
-        objetos.append(cilindro(0.0055, 0.05, b + Vector((0, 0, 0.008)), M.checkpoint, f'poste-{i}'))
+        objetos.append(cilindro(0.0055, 0.034, b + Vector((0, 0, 0.008)), M.checkpoint, f'poste-{i}'))
         foto = os.path.join(PROD, f'{nombres[i % len(nombres)]}.png')
-        objetos.append(plano_foto(f'reloj-{i}', foto, 0.072, b + Vector((0, -0.004, 0.025 + 0.036)), camara, cache))
+        objetos.append(plano_foto(f'reloj-{i}', foto, 0.072, b + Vector((0, 0, 0.025 + 0.036)), camara, cache, adelante=0.012))
     vistos = {}
     for q in sorted([q for q in lista if q['grupo'] in AUDIO], key=lambda q: q['centro'][0]):
         info = AUDIO[q['grupo']]
@@ -384,7 +386,7 @@ def poner_productos(modo, ubicacion, M, camara, cache, desplazar=(0, 0, 0)):
         if nombre == 'power-anc-negro':  # soporte de audífonos en aluminio
             objetos.append(cilindro(0.035, 0.006, b, M.aluminio, 'soporte-base'))
             objetos.append(cilindro(0.005, 0.17, b + Vector((0, 0.01, 0.006)), M.aluminio, 'soporte-poste'))
-            objetos.append(plano_foto(nombre, os.path.join(PROD, f'{nombre}.png'), alto, b + Vector((0, -0.012, 0.02 + alto / 2)), camara, cache))
+            objetos.append(plano_foto(nombre, os.path.join(PROD, f'{nombre}.png'), alto, b + Vector((0, 0, 0.02 + alto / 2)), camara, cache, adelante=0.016))
         else:
             objetos.append(plano_foto(nombre, os.path.join(PROD, f'{nombre}.png'), alto, b + Vector((0, 0, alto / 2)), camara, cache))
     return objetos
@@ -506,7 +508,7 @@ def toma(nombre, M):
     """Monta la toma y devuelve la exposición. Las posiciones van en coordenadas glTF (metros)."""
     cache = {}
     if nombre == 'familia':
-        cam = camara((1.75, 1.45, 2.85), (0.55, 0.82, -0.9), lente=30)
+        cam = camara((1.95, 1.32, 3.25), (0.6, 0.74, -0.8), lente=34)
         importar('mesa', M, artes=ARTES_MESA)
         poner_productos('mesa', (0, 0, 0), M, cam.location, cache)
         importar('mueble2', M, (0, 0, -1.75), artes=ARTES_MUEBLE2)
@@ -519,7 +521,7 @@ def toma(nombre, M):
         return 0.0
     if nombre in ('mesa', 'touch', 'vendedor', 'logo', 'material', 'despiece'):
         vistas = {
-            'mesa': dict(pos=(1.3, 1.32, 1.75), obj=(0.0, 0.6, 0.0), lente=45),
+            'mesa': dict(pos=(1.45, 1.3, 1.95), obj=(0.0, 0.52, 0.0), lente=46),
             'touch': dict(pos=(-0.42, 1.18, 0.95), obj=(0.04, 0.84, -0.02), lente=50, apertura=4.0, foco=(0.0, 0.85, 0.1)),
             'vendedor': dict(pos=(-1.2, 1.3, -1.55), obj=(0.0, 0.5, -0.05), lente=45),
             'logo': dict(pos=(1.2, 0.55, 0.55), obj=(0.5, 0.42, -0.03), lente=55, apertura=5.6, foco=(0.5, 0.4, 0.0)),
